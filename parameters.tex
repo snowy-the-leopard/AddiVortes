@@ -1,0 +1,59 @@
+\documentclass[11pt,twoside,a4paper]{article}
+\title{Parameters and choices for AddiVortes}
+\author{Lewis Maltby}
+\usepackage{amsmath}
+\usepackage[margin=0.8in]{geometry}
+\begin{document}
+\maketitle
+\begin{center}
+\begin{tabular}{ |c|c|c| }
+\hline
+\textbf{Choice/parameter} & \textbf{Notation} & \textbf{Default value/Prior distribution}\\
+\hline\hline
+Metric to use & $d$ & Euclidean\\
+Number of tessellations & $m$ & 200 \\
+\hline\hline
+Variance of noise & $\sigma$ & $\propto \frac{ \nu \lambda }{ \chi^2 _\nu }$\footnotemark[1]\\[0.1cm]
+\hline
+Noise degrees of freedom hyperparameter & $\nu$ & $3-10(6)$\\
+Noise alignment hyperparameter & $q$ & $0.7-0.99(0.85)$\\
+\hline\hline
+Number of covariates in $T_j$ & $d_j$ & $d_j-1\sim Bin(p-1,\frac{\omega}{p})$ \\
+Number of centers in $T_j$ & $b_j$ &$b_j-1\sim Po(\lambda_c)$ \\
+Covariates included in $T_j$ &--- & Uniformly at random \\
+Coordinates of centers of $T_j$ & --- & $\mathcal{N}(0, \sigma^2_c)$\footnotemark[2]\\
+\hline
+Number of covariates hyperparameter & $\omega$ & \\
+Number of centers hyperparameter & $\lambda_c$ & \\
+Center coordinates hyperparameter & $\sigma_c$ & \\
+\hline
+\hline
+Mean response of cell $i$ under tessellation $j$ & $\mu_{ij}$ & $\mathcal{N}(\mu_\mu, \sigma_\mu^2)$\\
+\hline
+Mean response center hyperparameter & $\mu_\mu$ & 0\footnotemark[3]\\
+Mean response spread hyperparameter & $\sigma_\mu$ & $\frac{0.5}{k\sqrt{m}}$\footnotemark[4]\\
+Mean response alignment hyperparameter & $k$ & $3$\\
+\hline\hline
+Probability of adding/removing a center & --- & 0.2\\
+Probability of adding/removing a covariate & --- & 0.2\\
+Probability of swapping a covariate & --- & 0.1\\
+Probability of changing the position of a center & --- & 0.1\\
+\hline\hline
+Number of MCMC iterations & --- & 1200\\
+Number of MCMC burn-ins & --- & 200\\
+\hline
+\end{tabular}
+\end{center}
+\footnotetext[1]{Two plausible choices for $\hat{\sigma}$ are considered. The first is the
+“naive” option, wherein $\hat{\sigma}$ corresponds to the sample standard
+deviation of the transformed training response values. The second is the “linear model” choice, where $\hat{\sigma}$ is based on the residual standard deviation from a least-squares linear regression
+of scaled Y on the scaled X variables. Subsequently, a value
+for $\nu$ within the range of 3–10 is selected to shape the prior
+appropriately. Additionally, a suitable $\lambda$ value is determined such
+that the qth quantile of the prior on $\sigma$ aligns with $\hat{\sigma}$ , that is
+$P(\sigma < \hat{\sigma}) = q$. A suitable range for q is values between 0.7
+and 0.99.}
+\footnotetext[2]{Drawn independently for each dimension}
+\footnotetext[3]{Given the prior centered at 0, representing our zero-centered transformed data}
+\footnotetext[4]{These hyper-parameters are set such that $m\mu_\mu - k\sqrt{m}\sigma_\mu=-0.5$ and $m\mu_\mu + k\sqrt{m}\sigma_\mu=0.5$, where $k$ is a preselected hyperparameter determining the prior probability of $E[Y\mid\mathbf{x}, \mathbf{y}_\text{train}, \mathbf{X}_\text{train}]$}
+\end{document}
