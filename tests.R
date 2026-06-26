@@ -2,31 +2,21 @@
 # 4 different examples using the AddiVortes algorithm. Each example fits the model, and then
 # finds the mean predictions for each data point.
 
-runtime_tests <- function(nDigits = 3){ # nDigits is number of decimal places to round to for run times
-  
+tests <- function(nDigits = 3){ # nDigits is number of decimal places to round to for run times
+  require(AddiVortes)
   # https://johnpaulgosling.github.io/AddiVortes/articles/introduction.html
   test1 <- function(){
   
-  require(AddiVortes)
-    
-  X_Boston <- as.matrix(Boston[, 1:13])
-  Y_Boston <- as.numeric(as.matrix(Boston[, 14]))
-  n <- length(Y_Boston)
-  
-  # Set a seed for reproducibility
-  set.seed(1025)
-  
-  # Create a training set containing 5/6 of the data
-  TrainSet <- sort(sample.int(n, 5 * n / 6))
-  
-  # The remaining data will be our test set
-  TestSet <- setdiff(1:n, TrainSet)
+  x_train <- as.matrix(read.csv("./datasets/boston/x_train.csv"))
+  y_train <- as.matrix(read.csv("./datasets/boston/y_train.csv"))
+  x_test <- as.matrix(read.csv("./datasets/boston/x_test.csv"))
+  y_test <- as.matrix(read.csv("./datasets/boston/y_test.csv"))
   
   # Run the AddiVortes algorithm on the training data
   start.time.fit <- Sys.time()
   results <- AddiVortes(
-    y = Y_Boston[TrainSet],
-    x = X_Boston[TrainSet, ],
+    y = y_train,
+    x = x_train,
     m = 200,
     totalMCMCIter = 2000,
     mcmcBurnIn = 200,
@@ -43,7 +33,7 @@ runtime_tests <- function(nDigits = 3){ # nDigits is number of decimal places to
   # Generate predictions on the test set
   start.time.preds <- Sys.time()
   preds <- predict(results,
-                   X_Boston[TestSet, ],
+                   x_test,
                    showProgress = FALSE
   )
   end.time.preds <- Sys.time()
@@ -55,46 +45,21 @@ runtime_tests <- function(nDigits = 3){ # nDigits is number of decimal places to
   
   # https://johnpaulgosling.github.io/AddiVortes/articles/prediction.html
   test2 <- function(){
-    # Load the package
-    require(AddiVortes)
-    
-    # --- Generate Training Data ---
-    set.seed(42) # for reproducibility
-    
-    # Create a 5-column matrix of predictors
-    X <- matrix(runif(2500), ncol = 5)
-    X[, 1] <- -10 - X[, 1] * 10
-    X[, 2] <- X[, 2] * 100
-    X[, 3] <- -9 + X[, 3] * 10
-    X[, 4] <- 8 + X[, 4]
-    X[, 5] <- X[, 5] * 10
-    
-    # Create the response 'Y' based on a rule and add noise
-    Y_underlying <- ifelse(-1 * X[, 2] > 10 * X[, 1] + 100, 10, 0)
-    Y <- Y_underlying + rnorm(length(Y_underlying))
+
+    x_train <- as.matrix(read.csv("./datasets/synthetic/x_train.csv"))
+    y_train <- as.matrix(read.csv("./datasets/synthetic/y_train.csv"))
+    x_test <- as.matrix(read.csv("./datasets/synthetic/x_test.csv"))
+    y_test <- as.matrix(read.csv("./datasets/synthetic/y_test.csv"))
     
     # Fit the model
     start.time.fit <- Sys.time()
-    AModel <- AddiVortes(Y, X, m = 50, showProgress = FALSE)
+    AModel <- AddiVortes(y_train, x_train, m = 50, showProgress = FALSE)
     end.time.fit <- Sys.time()
-    
-    # --- Generate Test Data ---
-    set.seed(101) # Use a different seed for the test set
-    testX <- matrix(runif(1000), ncol = 5)
-    testX[, 1] <- -10 - testX[, 1] * 10
-    testX[, 2] <- testX[, 2] * 100
-    testX[, 3] <- -9 + testX[, 3] * 10
-    testX[, 4] <- 8 + testX[, 4]
-    testX[, 5] <- testX[, 5] * 10
-    
-    # Create the true test response values
-    testY_underlying <- ifelse(-1 * testX[, 2] > 10 * testX[, 1] + 100, 10, 0)
-    testY <- testY_underlying + rnorm(length(testY_underlying))
-    
+
     # --- Make Predictions ---
     # Predict the mean response
     start.time.pred <- Sys.time()
-    preds <- predict(AModel, testX,
+    preds <- predict(AModel, x_test,
                      showProgress = FALSE
     )
     end.time.pred <- Sys.time()
@@ -107,32 +72,16 @@ runtime_tests <- function(nDigits = 3){ # nDigits is number of decimal places to
   
   # https://johnpaulgosling.github.io/AddiVortes/articles/spherical.html
   test3 <- function(){
-    require(AddiVortes)
     
-    set.seed(42)
-    n <- 300
-    
-    # Sample random locations on the globe
-    lat <- runif(n, -pi / 2, pi / 2) # latitude in radians: [-pi/2, pi/2]
-    lon <- runif(n, -pi, pi) # longitude in radians: [-pi, pi]
-    
-    # True function: warmer at the equator, slight east-west gradient
-    y_true <- 20 * cos(lat) + 5 * sin(lon)
-    
-    # Add observation noise
-    y <- y_true + rnorm(n, sd = 2)
-    
-    # Covariate matrix: latitude first, longitude last (required convention)
-    x <- cbind(lat, lon)
-    
-    # Convert radians to degrees for a readable plot
-    lat_deg <- lat * 180 / pi
-    lon_deg <- lon * 180 / pi
+    x_train <- as.matrix(read.csv("./datasets/spherical/x_train.csv"))
+    y_train <- as.matrix(read.csv("./datasets/spherical/y_train.csv"))
+    x_test <- as.matrix(read.csv("./datasets/spherical/x_test.csv"))
+    y_test <- as.matrix(read.csv("./datasets/spherical/y_test.csv"))
     
     start.time.fit <- Sys.time()
     fit_sph <- AddiVortes(
-      y = y,
-      x = x,
+      y = y_train,
+      x = x_train,
       m = 50,
       totalMCMCIter = 500,
       mcmcBurnIn = 100,
@@ -141,19 +90,8 @@ runtime_tests <- function(nDigits = 3){ # nDigits is number of decimal places to
     )
     end.time.fit <- Sys.time()
     
-    set.seed(101)
-    n_test <- 200
-    
-    lat_test <- runif(n_test, -pi / 2, pi / 2)
-    lon_test <- runif(n_test, -pi, pi)
-    
-    y_true_test <- 20 * cos(lat_test) + 5 * sin(lon_test)
-    y_test <- y_true_test + rnorm(n_test, sd = 2)
-    
-    x_test <- cbind(lat_test, lon_test)
-    
     start.time.pred <- Sys.time()
-    preds_sph <- predict(fit_sph, x_test, showProgress = FALSE)
+    preds_sph <- predict(fit_sph, x_train, showProgress = FALSE)
     end.time.pred <- Sys.time()
     
     return(c(
@@ -164,41 +102,11 @@ runtime_tests <- function(nDigits = 3){ # nDigits is number of decimal places to
   
   # https://johnpaulgosling.github.io/AddiVortes/articles/categorical.html
   test4 <- function(){
-    library(AddiVortes)
     
-    set.seed(123)
-    n <- 400
-    
-    x <- data.frame(
-      age = rnorm(n, mean = 40, sd = 10),
-      income = runif(n, 20, 120), # income in thousands
-      region = sample(c("East", "North", "South", "West"), n, replace = TRUE),
-      product = sample(c("Basic", "Premium", "Deluxe"), n, replace = TRUE),
-      stringsAsFactors = FALSE
-    )
-    
-    # True response: depends on continuous and categorical variables
-    region_effect <- ifelse(x$region == "North", 5,
-                            ifelse(x$region == "South", -5, 0)
-    )
-    product_effect <- ifelse(x$product == "Premium", 10,
-                             ifelse(x$product == "Deluxe", 20, 0)
-    )
-    
-    y <- 0.3 * x$age +
-      0.1 * x$income +
-      region_effect +
-      product_effect +
-      rnorm(n, sd = 3)
-    
-    # Split into training and test sets
-    set.seed(42)
-    train_idx <- sample(n, 300)
-    
-    x_train <- x[train_idx, ]
-    y_train <- y[train_idx]
-    x_test <- x[-train_idx, ]
-    y_test <- y[-train_idx]
+    x_train <- read.csv("./datasets/categorical/x_train.csv")
+    y_train <- as.matrix(read.csv("./datasets/categorical/y_train.csv"))
+    x_test <- read.csv("./datasets/categorical/x_test.csv")
+    y_test <- as.matrix(read.csv("./datasets/categorical/y_test.csv"))
     
     start.time.fit <- Sys.time()
     fit <- AddiVortes(
