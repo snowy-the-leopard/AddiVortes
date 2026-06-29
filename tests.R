@@ -37,9 +37,12 @@ tests <- function(nDigits = 3){ # nDigits is number of decimal places to round t
                    showProgress = FALSE
   )
   end.time.preds <- Sys.time()
+
   return (c(
     round(end.time.fit-start.time.fit, nDigits),
-    round(end.time.preds-start.time.preds,nDigits)
+    round(end.time.preds-start.time.preds,nDigits),
+    round(results$inSampleRmse, nDigits),
+    round(sqrt(mean((y_test - preds)^2)), nDigits)
   ))
   }
   
@@ -66,7 +69,9 @@ tests <- function(nDigits = 3){ # nDigits is number of decimal places to round t
    
     return(c(
       round(end.time.fit-start.time.fit, nDigits),
-      round(end.time.pred-start.time.pred, nDigits)
+      round(end.time.pred-start.time.pred, nDigits),
+      round(AModel$inSampleRmse, nDigits),
+      round(sqrt(mean((y_test - preds)^2)), nDigits)
     ))
   }
   
@@ -91,12 +96,14 @@ tests <- function(nDigits = 3){ # nDigits is number of decimal places to round t
     end.time.fit <- Sys.time()
     
     start.time.pred <- Sys.time()
-    preds_sph <- predict(fit_sph, x_train, showProgress = FALSE)
+    preds_sph <- predict(fit_sph, x_test, showProgress = FALSE)
     end.time.pred <- Sys.time()
     
     return(c(
       round(end.time.fit - start.time.fit, nDigits),
-      round(end.time.pred - start.time.pred, nDigits)
+      round(end.time.pred - start.time.pred, nDigits),
+      round(fit_sph$inSampleRmse, nDigits),
+      round(sqrt(mean((y_test - preds_sph)^2)), nDigits)
     ))
   }
   
@@ -126,11 +133,16 @@ tests <- function(nDigits = 3){ # nDigits is number of decimal places to round t
     
     return(c(
       round(end.time.fit-start.time.fit, nDigits),
-      round(end.time.pred-start.time.pred, nDigits)
+      round(end.time.pred-start.time.pred, nDigits),
+      round(fit$inSampleRmse, nDigits),
+      round(sqrt(mean((y_test - preds)^2)), nDigits)
     ))
   }
   
-  results <- matrix(c(test1(), test2(), test3(), test4()), byrow=TRUE, nrow=4)
-  dimnames(results) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("Fit time", "Prediction time"))
-  return(addmargins(results))
+  results <- list(test1(), test2(), test3(), test4())
+  times <- matrix(c(results[[1]][1:2], results[[2]][1:2], results[[3]][1:2], results[[4]][1:2]), byrow=TRUE, nrow=4)
+  dimnames(times) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("Fit time", "Prediction time"))
+  errors <- matrix(c(results[[1]][3:4], results[[2]][3:4], results[[3]][3:4], results[[4]][3:4]), byrow=TRUE, nrow=4)
+  dimnames(errors) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("In-sample RMSE", "Out-of-sample RMSE"))
+  return(list(times=addmargins(times), errors=addmargins(errors)))
 }
