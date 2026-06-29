@@ -6,6 +6,7 @@ def tests(nDigits = 3):
     from addivortes import AddiVortesRegressor
     import pandas as pd
     import time
+    import numpy as np
 
     nDigits = 3
 
@@ -28,7 +29,10 @@ def tests(nDigits = 3):
         preds = model.predict(x_test)
         end_time_preds = time.perf_counter()
 
-        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)], "Prediction time": [round(end_time_preds-start_time_preds, nDigits)]}
+        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)],
+              "Prediction time": [round(end_time_preds-start_time_preds, nDigits)],
+              "In-sample RMSE": [round(model.in_sample_rmse_, nDigits)],
+              "Out-of-sample RMSE": [float(round(np.sqrt(np.mean((y_test - preds) ** 2)), nDigits))]}
         return(pd.DataFrame(data=d))
 
     def test2():
@@ -46,7 +50,10 @@ def tests(nDigits = 3):
         preds = model.predict(x_test)
         end_time_preds = time.perf_counter()
 
-        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)], "Prediction time": [round(end_time_preds-start_time_preds, nDigits)]}
+        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)],
+              "Prediction time": [round(end_time_preds-start_time_preds, nDigits)],
+              "In-sample RMSE": [round(model.in_sample_rmse_, nDigits)],
+              "Out-of-sample RMSE": [float(round(np.sqrt(np.mean((y_test - preds) ** 2)), nDigits))]}
         return(pd.DataFrame(data=d))
 
     def test3():
@@ -69,7 +76,10 @@ def tests(nDigits = 3):
         preds = model.predict(x_test)
         end_time_preds = time.perf_counter()
 
-        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)], "Prediction time": [round(end_time_preds-start_time_preds, nDigits)]}
+        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)],
+              "Prediction time": [round(end_time_preds-start_time_preds, nDigits)],
+              "In-sample RMSE": [round(model.in_sample_rmse_, nDigits)],
+              "Out-of-sample RMSE": [float(round(np.sqrt(np.mean((y_test - preds) ** 2)), nDigits))]}
         return(pd.DataFrame(data=d))
 
     def test4():
@@ -92,13 +102,22 @@ def tests(nDigits = 3):
         preds = model.predict(x_test)
         end_time_preds = time.perf_counter()
 
-        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)], "Prediction time": [round(end_time_preds-start_time_preds, nDigits)]}
+        d = {"Fit time": [round(end_time_fit-start_time_fit, nDigits)],
+              "Prediction time": [round(end_time_preds-start_time_preds, nDigits)],
+              "In-sample RMSE": [round(model.in_sample_rmse_, nDigits)],
+              "Out-of-sample RMSE": [float(round(np.sqrt(np.mean((y_test - preds) ** 2)), nDigits))]}
         return(pd.DataFrame(data=d))
 
     results = pd.concat([test1(), test2(), test3(), test4()], axis=0)
-    results.index = ["Test 1", "Test 2", "Test 3", "Test 3"]
-    results["Sum"] = results.sum(axis=1)
-    results.loc["Sum"] = results.sum(axis=0)
-    return(results)
+    results.index = ["Test 1", "Test 2", "Test 3", "Test 4"]
+    times = results.iloc[:, :2]
+    errors = results.iloc[:, 2:]
+    times["Sum"] = times.sum(axis=1)
+    times.loc["Sum"] = times.sum(axis=0)
+    errors["Sum"] = errors.sum(axis=1)
+    errors.loc["Sum"] = errors.sum(axis=0)
+    return([times, errors])
 
-print(tests(3))
+results = tests()
+print(results[0])
+print(results[1])
