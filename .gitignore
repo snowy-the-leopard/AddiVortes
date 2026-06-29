@@ -3,3 +3,8 @@
 .RData
 .Ruserdata
 /py-addivortes
+env/
+.venv/
+venv/
+__pycache__/
+*.pyc
