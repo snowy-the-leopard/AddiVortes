@@ -2,13 +2,11 @@
 # 4 different examples using the AddiVortes algorithm. Each example fits the model, and then
 # finds the mean predictions for each data point.
 
-def tests(nDigits = 3):
+def tests(nDigits = 3, nTimes = 1):
     from addivortes import AddiVortesRegressor
     import pandas as pd
     import time
     import numpy as np
-
-    nDigits = 3
 
     def test1():
         x_train = pd.read_csv("./datasets/boston/x_train.csv")
@@ -107,17 +105,35 @@ def tests(nDigits = 3):
               "In-sample RMSE": [round(model.in_sample_rmse_, nDigits)],
               "Out-of-sample RMSE": [float(round(np.sqrt(np.mean((y_test - preds) ** 2)), nDigits))]}
         return(pd.DataFrame(data=d))
+    
+    def to_csv_string(*args):
+        return (",".join(str(x) for x in args) + "\n")
+    
+    dfs = []
+    times_dfs = []
+    errors_dfs = []
 
-    results = pd.concat([test1(), test2(), test3(), test4()], axis=0)
-    results.index = ["Test 1", "Test 2", "Test 3", "Test 4"]
-    times = results.iloc[:, :2]
-    errors = results.iloc[:, 2:]
-    times["Sum"] = times.sum(axis=1)
-    times.loc["Sum"] = times.sum(axis=0)
-    errors["Sum"] = errors.sum(axis=1)
-    errors.loc["Sum"] = errors.sum(axis=0)
-    return([times, errors])
+    for i in range(0, nTimes):
+        results = pd.concat([test1(), test2(), test3(), test4()], axis=0)
+        results.round(nDigits)
+        with open("py-testlog.csv", "a") as f:
+            f.write(to_csv_string(*results.to_numpy().flatten()))
+        dfs.append(results)
+        
+    for results in dfs:
+        results.index = ["Test 1", "Test 2", "Test 3", "Test 4"]
+        times = results.iloc[:, :2]
+        errors = results.iloc[:, 2:]
+        times["Sum"] = times.sum(axis=1)
+        times.loc["Sum"] = times.sum(axis=0)
+        errors["Sum"] = errors.sum(axis=1)
+        errors.loc["Sum"] = errors.sum(axis=0)
+        times_dfs.append(times)
+        errors_dfs.append(errors)
+    avg_times = sum(times_dfs) / len(times_dfs)
+    avg_errors = sum(errors_dfs) / len(errors_dfs)
+    return [avg_times.round(nDigits), avg_errors.round(nDigits)]
 
-results = tests()
+results = tests(3, 1)
 print(results[0])
 print(results[1])

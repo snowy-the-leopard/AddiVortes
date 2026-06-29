@@ -2,8 +2,9 @@
 # 4 different examples using the AddiVortes algorithm. Each example fits the model, and then
 # finds the mean predictions for each data point.
 
-tests <- function(nDigits = 3){ # nDigits is number of decimal places to round to for run times
+tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal places to round to for run times
   require(AddiVortes)
+  pbapply::pboptions(type = "none") # Disable progress bars for predictions
   # https://johnpaulgosling.github.io/AddiVortes/articles/introduction.html
   test1 <- function(){
   
@@ -138,11 +139,31 @@ tests <- function(nDigits = 3){ # nDigits is number of decimal places to round t
       round(sqrt(mean((y_test - preds)^2)), nDigits)
     ))
   }
+
+  times <- list()
+  errors <- list()
   
-  results <- list(test1(), test2(), test3(), test4())
-  times <- matrix(c(results[[1]][1:2], results[[2]][1:2], results[[3]][1:2], results[[4]][1:2]), byrow=TRUE, nrow=4)
-  dimnames(times) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("Fit time", "Prediction time"))
-  errors <- matrix(c(results[[1]][3:4], results[[2]][3:4], results[[3]][3:4], results[[4]][3:4]), byrow=TRUE, nrow=4)
-  dimnames(errors) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("In-sample RMSE", "Out-of-sample RMSE"))
-  return(list(times=addmargins(times), errors=addmargins(errors)))
+  to_csv <- function(...) {
+    paste(paste(..., sep = "", collapse = ","), "\n")
+  }
+  
+  for (i in 1:nTimes){
+    results <- list(test1(), test2(), test3(), test4())
+    times[[i]] <- matrix(c(results[[1]][1:2], results[[2]][1:2], results[[3]][1:2], results[[4]][1:2]), byrow=TRUE, nrow=4)
+    errors[[i]] <- matrix(c(results[[1]][3:4], results[[2]][3:4], results[[3]][3:4], results[[4]][3:4]), byrow=TRUE, nrow=4)
+    cat(
+      paste(unlist(results), collapse = ","),
+      "\n",
+      file = "r-testlog.csv",
+      append = TRUE
+    )
+  }
+
+  avg_time = round(Reduce("+", times) / nTimes, nDigits)
+  avg_errors = round(Reduce("+", errors) / nTimes, nDigits)
+  dimnames(avg_time) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("Fit time", "Prediction time"))
+  dimnames(avg_errors) <- list(c("Test 1", "Test 2", "Test 3", "Test 4"), c("In-sample RMSE", "Out-of-sample RMSE"))
+  return(list(times=addmargins(avg_time), errors=addmargins(avg_errors)))
 }
+
+tests(3,1)
