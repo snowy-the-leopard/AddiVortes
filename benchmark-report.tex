@@ -4,21 +4,27 @@
 \usepackage{amsmath}
 \usepackage[margin=0.8in]{geometry}
 \usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+
+\usepackage{float}
 \begin{document}
 \maketitle
 \section{Introduction}
 
 The purpose of this article is to compare the speed and performance of the AddiVortes algorithm between the current up-to-date Python and R implementations. We will benchmark the fitting time of a model, as well as the amount of time required to make simple predictions on a test set, to try to determine which of the two implementations is faster to use. We will also benchmark the in-sample and out-of-sample RMSE on that data to determine which of the two implementations gives predictions with lower errors.
 \\\\
-The code used to generate the benchmarking data, as well as the generated data itself and all referenced files, are available to view at \url{https://github.com/snowy-the-leopard/AddiVortes}. This data was generated using the \textsc{AddiVortes} R package, version 0.6.5, avaliable to view here \url{https://github.com/johnpaulgosling/AddiVortes}, and the \textsc{addivortes} Python package, version 0.6.5, avaliable to view here \url{https://github.com/johnpaulgosling/py-addivortes}.
+The code used to generate the benchmarking data, as well as the generated data itself and all referenced files, are available to view at \url{https://github.com/snowy-the-leopard/AddiVortes}. This data was generated using the \textsc{AddiVortes} R package, version 0.6.5, available to view here \url{https://github.com/johnpaulgosling/AddiVortes}, and the \textsc{addivortes} Python package, version 0.6.5, available to view here \url{https://github.com/johnpaulgosling/py-addivortes}.
 
 \section{Benchmarking methodology}
 To ensure fairness, consistency, and accuracy with these tests, the following controls were implemented on these benchmarks:
 \begin{enumerate}
-	\item The benchmarks was ran on a new GitHub Codespace, a clean installation of Python and R were used, with only the necessary packages downloaded to minimise background resource usage. The Codespace used is a 2-core 2.8GhZ system with 8GB of memory. Exact details of hardware used can be found at \nolinkurl{AddiVortes/mySpecs.html}.
+	\item The benchmarks were run on a new GitHub Codespace, a clean installation of Python and R were used, with only the necessary packages downloaded to minimise background resource usage. The Codespace used is a 2-core 2.8GHz system with 8GB of memory. Exact details of hardware used can be found at \nolinkurl{AddiVortes\   mySpecs.html}.
 	\item The code was set up such that each implementation used only a single thread, to counteract the potentially different methods of multi threading between the two languages. This choice was made as we are working under the assumption that when we are working with HPC resources, the code will be optimised to allow multiple threads to be used at once. This choice allows us to compare algorithmic efficiency in each implementation more directly.
 	\item The same models and predictions were fitted repeatedly in order to capture the small variations in fit and prediction times between runs. This will also produce a set of slightly varying prediction results due to the random nature of the MCMC fitting algorithm, and allow us to better analyse how consistent our results are.
-	\item The benchmarks were ran sequentially rather than simultaneously to minimise the risk of shared resources skewing the results, where one script could take computational priority over another, leading to a larger discrepancy in results.
+	\item The benchmarks were run sequentially rather than simultaneously to minimise the risk of shared resources skewing the results, where one script could take computational priority over another, leading to a larger discrepancy in results.
 	\item The timings were taken only between the computation required for fitting and generating predictions, with the pre-generated datasets already loaded in prior to this.
 \end{enumerate}
 \newpage
@@ -31,7 +37,172 @@ We have constructed a synthetic dataset using noisy functions of independently a
 \subsection{Spherical dataset}
 We have constructed random longitudes and latitudes to represent positions on a sphere, and a noisy response function. This consists of 2 numerical covariates (the coordinates), and we model it using the following fixed parameters, with the rest of the parameters taking their default values: \texttt{m = 50, totalMCMCiter = 500, mcmcBurnIn = 100, metric = "S"}. Note that this uses great circle distance, the shortest distance between two points over the surface of the sphere.
 \subsection{Categorical dataset}
-We have constructed this dataset using random numerical and categorical covariates, as well as a noisy response function. This consists of 2 numerical and 2 categorical covariates, and we model it using the following fixed parameters, with the rest of the paramaters taking their default values: \texttt{m = 50, totalMCMCIter = 500, mcmcBurnIn = 100, catScaling = 1}
+We have constructed this dataset using random numerical and categorical covariates, as well as a noisy response function. This consists of 2 numerical and 2 categorical covariates, and we model it using the following fixed parameters, with the rest of the parameters taking their default values: \texttt{m = 50, totalMCMCiter = 500, mcmcBurnIn = 100, catScaling = 1}
 \section{Benchmark results}
-The full benchmarks, which carry out model fitting and prediction on the above 4 datasets, were ran for 
+The full benchmarks, which carry out model fitting and prediction on the above 4 datasets, were run for 106 iterations each. The code can be found at \nolinkurl{AddiVortes\ tests.R} and \nolinkurl{AddiVortes\ tests.py}
+
+\begin{table}[htbp]
+\centering
+\caption{Mean Fit and Prediction Times (R vs Python)}
+\label{tab:fit_pred_means}
+\begin{adjustbox}{width=\textwidth}
+\input{fit_pred_means.tex}
+\end{adjustbox}
+\end{table}
+\newpage
+
+\begin{table}[htbp]
+\centering
+\caption{Standard Deviation of Fit and Prediction Times (R vs Python)}
+\label{tab:fit_pred_sds}
+\begin{adjustbox}{width=\textwidth}
+\input{fit_pred_sds.tex}
+\end{adjustbox}
+\end{table}
+\begin{table}[htbp]
+\centering
+\caption{Mean In-sample and Out-of-sample RMSE (R vs Python)}
+\label{tab:rmse_means}
+\begin{adjustbox}{width=\textwidth}
+\input{rmse_means.tex}
+\end{adjustbox}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Standard Deviation of RMSE (R vs Python)}
+\label{tab:rmse_sds}
+
+\begin{adjustbox}{width=\textwidth}
+\input{rmse_sds.tex}
+\end{adjustbox}
+\end{table}
+\begin{figure}[H]
+\centering
+
+% Row 1 (Dataset 1)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{fit1.jpg}
+    \caption{Fit 1}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{pred1.jpg}
+    \caption{Pred 1}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+% Row 2 (Dataset 2)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{fit2.jpg}
+    \caption{Fit 2}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{pred2.jpg}
+    \caption{Pred 2}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+% Row 3 (Dataset 3)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{fit3.jpg}
+    \caption{Fit 3}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{pred3.jpg}
+    \caption{Pred 3}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+% Row 4 (Dataset 4)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{fit4.jpg}
+    \caption{Fit 4}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{pred4.jpg}
+    \caption{Pred 4}
+\end{subfigure}
+
+\caption{Model fitting and prediction times across datasets.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+
+% Row 1 (Dataset 1)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{irmse1.jpg}
+    \caption{iRMSE 1}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{ormse1.jpg}
+    \caption{oRMSE 1}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+% Row 2 (Dataset 2)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{irmse2.jpg}
+    \caption{iRMSE 2}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{ormse2.jpg}
+    \caption{oRMSE 2}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+% Row 3 (Dataset 3)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{irmse3.jpg}
+    \caption{iRMSE 3}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{ormse3.jpg}
+    \caption{oRMSE 3}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+% Row 4 (Dataset 4)
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{irmse4.jpg}
+    \caption{iRMSE 4}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{ormse4.jpg}
+    \caption{oRMSE 4}
+\end{subfigure}
+
+\caption{In-sample and out-of-sample RMSE across datasets.}
+\end{figure}
+\newpage
+\section{Analysis of results}
+\subsection{Fit times}
+The mean fit time using Python was lower for all models, and substantially lower for all models, excluding model 3 (spherical). With an average decrease of 22\% in mean fit time using Python, we can certainly conclude that the Python implementation is significantly faster than R at fitting the AddiVortes model using a Euclidean metric.
+The standard deviation of fit times using Python was significantly lower for all models, with an average decrease of 73\% when using Python instead of R.
+\\
+\\
+Therefore in terms of both lower and more consistent fit times, Python is superior.
+\subsection{Prediction times}
+The mean prediction time using Python was significantly lower for all models, with an average decrease of 51\% when using Python instead of R. The standard deviation of fit times using Python was significantly lower for all models, with an average decrease of 77\% when using Python instead of R.
+\\
+\\
+Therefore in terms of both lower and more consistent fit times, Python is superior.
+\subsection{In-sample RMSEs}
+The mean in-sample RMSE using Python was slightly higher for all models, with an average increase of 2\% when using Python instead of R. The standard deviation of in-sample RMSEs using Python gave mixed results in comparison to R. The standard deviation of in-sample RMSEs on model 1 was significantly higher. This model, representing real world data that could be more unstructured than the synthetic datasets we generated, should be the most significant for us here, where the other differences vary in sign.
+\\
+\\
+Therefore in terms of lower and more consistent in-sample RMSEs, we should take a slight preference for R, with its slightly, but consistently, better mean in-sample RMSEs, and its proficiency for more consistent in-sample RMSEs with the real-world dataset used.
+\subsection{Out-of-sample RMSEs}
+The mean out-of-sample RMSE using Python gave mixed results in comparison to R. The mean out-of-sample RMSE was almost the same for models 1 and 4, with only a slight increase for model 2. This shows that R also has a slightly lower mean out-of-sample RMSE using a Euclidean metric. On the other hand, the out-of-sample RMSE was significantly lower for model 3 (spherical), with a reduction of 51\% in mean value. The standard deviation of out-of-sample RMSEs using Python was significantly lower for models 2 and 3, with models 1 and 4 having much smaller changes with varying sign. This demonstrates that Python can generate much more consistent out-of-sample RMSEs.
+\\
+\\
+Therefore in terms of out-of-sample RMSEs, it seems that R produces a consistently slightly lower mean, when using the Euclidean metric, however Python seems to be able to produce much more consistent values, and produces a much lower mean out-of-sample RMSE when using the Spherical metric. Hence it is hard to demonstrate any clear preference we should have of either implementation in this regard.
+\section{Conclusion}
+Given that the results obtained using Python are significantly faster and more consistent, and there is only evidence of a very slight reduction in RMSEs when using R, I would recommend the Python implementation for further use and testing.
 \end{document}
