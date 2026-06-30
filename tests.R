@@ -3,6 +3,15 @@
 # finds the mean predictions for each data point.
 
 tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal places to round to for run times
+  Sys.setenv(
+    OMP_NUM_THREADS = "1",
+    MKL_NUM_THREADS = "1",
+    OPENBLAS_NUM_THREADS = "1"
+  )
+  library(RhpcBLASctl)
+  blas_set_num_threads(1)
+  omp_set_num_threads(1)
+  library(RhpcBLASctl)
   require(AddiVortes)
   pbapply::pboptions(type = "none") # Disable progress bars for predictions
   # https://johnpaulgosling.github.io/AddiVortes/articles/introduction.html
@@ -149,6 +158,7 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   
   for (i in 1:nTimes){
     results <- list(test1(), test2(), test3(), test4())
+    print(paste("Iteration ", i, " completed"))
     times[[i]] <- matrix(c(results[[1]][1:2], results[[2]][1:2], results[[3]][1:2], results[[4]][1:2]), byrow=TRUE, nrow=4)
     errors[[i]] <- matrix(c(results[[1]][3:4], results[[2]][3:4], results[[3]][3:4], results[[4]][3:4]), byrow=TRUE, nrow=4)
     cat(
@@ -166,4 +176,4 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   return(list(times=addmargins(avg_time), errors=addmargins(avg_errors)))
 }
 
-tests(3,1)
+tests(3,1000)
