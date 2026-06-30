@@ -3,10 +3,17 @@
 # finds the mean predictions for each data point.
 
 def tests(nDigits = 3, nTimes = 1):
+    import os
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
     from addivortes import AddiVortesRegressor
     import pandas as pd
     import time
     import numpy as np
+    from threadpoolctl import threadpool_info
+    print(threadpool_info())
 
     def test1():
         x_train = pd.read_csv("./datasets/boston/x_train.csv")

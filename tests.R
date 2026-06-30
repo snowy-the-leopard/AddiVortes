@@ -3,6 +3,15 @@
 # finds the mean predictions for each data point.
 
 tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal places to round to for run times
+  Sys.setenv(
+    OMP_NUM_THREADS = "1",
+    MKL_NUM_THREADS = "1",
+    OPENBLAS_NUM_THREADS = "1"
+  )
+  library(RhpcBLASctl)
+  blas_set_num_threads(1)
+  omp_set_num_threads(1)
+  library(RhpcBLASctl)
   require(AddiVortes)
   pbapply::pboptions(type = "none") # Disable progress bars for predictions
   # https://johnpaulgosling.github.io/AddiVortes/articles/introduction.html
