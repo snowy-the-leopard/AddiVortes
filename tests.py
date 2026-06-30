@@ -115,6 +115,7 @@ def tests(nDigits = 3, nTimes = 1):
 
     for i in range(0, nTimes):
         results = pd.concat([test1(), test2(), test3(), test4()], axis=0)
+        print("Iteration " + str(i) + " completed")
         results.round(nDigits)
         with open("py-testlog.csv", "a") as f:
             f.write(to_csv_string(*results.to_numpy().flatten()))
@@ -134,6 +135,6 @@ def tests(nDigits = 3, nTimes = 1):
     avg_errors = sum(errors_dfs) / len(errors_dfs)
     return [avg_times.round(nDigits), avg_errors.round(nDigits)]
 
-results = tests(3, 1)
+results = tests(3, 1000)
 print(results[0])
 print(results[1])

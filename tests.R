@@ -149,6 +149,7 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   
   for (i in 1:nTimes){
     results <- list(test1(), test2(), test3(), test4())
+    print(paste("Iteration ", i, " completed"))
     times[[i]] <- matrix(c(results[[1]][1:2], results[[2]][1:2], results[[3]][1:2], results[[4]][1:2]), byrow=TRUE, nrow=4)
     errors[[i]] <- matrix(c(results[[1]][3:4], results[[2]][3:4], results[[3]][3:4], results[[4]][3:4]), byrow=TRUE, nrow=4)
     cat(
@@ -166,4 +167,4 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   return(list(times=addmargins(avg_time), errors=addmargins(avg_errors)))
 }
 
-tests(3,1)
+tests(3,1000)
