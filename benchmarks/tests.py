@@ -16,10 +16,10 @@ def tests(nDigits = 3, nTimes = 1):
     print(threadpool_info())
 
     def test1():
-        x_train = pd.read_csv("./datasets/boston/x_train.csv")
-        y_train = pd.read_csv("./datasets/boston/y_train.csv").iloc[:, 0].to_numpy()
-        x_test = pd.read_csv("./datasets/boston/x_test.csv")
-        y_test = pd.read_csv("./datasets/boston/y_test.csv").iloc[:, 0].to_numpy()
+        x_train = pd.read_csv("./benchmarks/datasets/boston/x_train.csv")
+        y_train = pd.read_csv("./benchmarks/datasets/boston/y_train.csv").iloc[:, 0].to_numpy()
+        x_test = pd.read_csv("./benchmarks/datasets/boston/x_test.csv")
+        y_test = pd.read_csv("./benchmarks/datasets/boston/y_test.csv").iloc[:, 0].to_numpy()
 
         start_time_fit = time.perf_counter()
         model = AddiVortesRegressor(
@@ -41,10 +41,10 @@ def tests(nDigits = 3, nTimes = 1):
         return(pd.DataFrame(data=d))
 
     def test2():
-        x_train = pd.read_csv("./datasets/synthetic/x_train.csv")
-        y_train = pd.read_csv("./datasets/synthetic/y_train.csv").iloc[:, 0].to_numpy()
-        x_test = pd.read_csv("./datasets/synthetic/x_test.csv")
-        y_test = pd.read_csv("./datasets/synthetic/y_test.csv").iloc[:, 0].to_numpy()
+        x_train = pd.read_csv("./benchmarks/datasets/synthetic/x_train.csv")
+        y_train = pd.read_csv("./benchmarks/datasets/synthetic/y_train.csv").iloc[:, 0].to_numpy()
+        x_test = pd.read_csv("./benchmarks/datasets/synthetic/x_test.csv")
+        y_test = pd.read_csv("./benchmarks/datasets/synthetic/y_test.csv").iloc[:, 0].to_numpy()
 
         start_time_fit = time.perf_counter()
         model = AddiVortesRegressor(n_tessellations = 50)
@@ -62,10 +62,10 @@ def tests(nDigits = 3, nTimes = 1):
         return(pd.DataFrame(data=d))
 
     def test3():
-        x_train = pd.read_csv("./datasets/spherical/x_train.csv")
-        y_train = pd.read_csv("./datasets/spherical/y_train.csv").iloc[:, 0].to_numpy()
-        x_test = pd.read_csv("./datasets/spherical/x_test.csv")
-        y_test = pd.read_csv("./datasets/spherical/y_test.csv").iloc[:, 0].to_numpy()
+        x_train = pd.read_csv("./benchmarks/datasets/spherical/x_train.csv")
+        y_train = pd.read_csv("./benchmarks/datasets/spherical/y_train.csv").iloc[:, 0].to_numpy()
+        x_test = pd.read_csv("./benchmarks/datasets/spherical/x_test.csv")
+        y_test = pd.read_csv("./benchmarks/datasets/spherical/y_test.csv").iloc[:, 0].to_numpy()
 
         start_time_fit = time.perf_counter()
         model = AddiVortesRegressor(
@@ -88,10 +88,10 @@ def tests(nDigits = 3, nTimes = 1):
         return(pd.DataFrame(data=d))
 
     def test4():
-        x_train = pd.read_csv("./datasets/categorical/x_train.csv")
-        y_train = pd.read_csv("./datasets/categorical/y_train.csv").iloc[:, 0].to_numpy()
-        x_test = pd.read_csv("./datasets/categorical/x_test.csv")
-        y_test = pd.read_csv("./datasets/categorical/y_test.csv").iloc[:, 0].to_numpy()
+        x_train = pd.read_csv("./benchmarks/datasets/categorical/x_train.csv")
+        y_train = pd.read_csv("./benchmarks/datasets/categorical/y_train.csv").iloc[:, 0].to_numpy()
+        x_test = pd.read_csv("./benchmarks/datasets/categorical/x_test.csv")
+        y_test = pd.read_csv("./benchmarks/datasets/categorical/y_test.csv").iloc[:, 0].to_numpy()
 
         start_time_fit = time.perf_counter()
         model = AddiVortesRegressor(
@@ -124,7 +124,7 @@ def tests(nDigits = 3, nTimes = 1):
         results = pd.concat([test1(), test2(), test3(), test4()], axis=0)
         print("Iteration " + str(i) + " completed")
         results.round(nDigits)
-        with open("py-testlog.csv", "a") as f:
+        with open("benchmarks/py-testlog.csv", "a") as f:
             f.write(to_csv_string(*results.to_numpy().flatten()))
         dfs.append(results)
         
@@ -142,6 +142,6 @@ def tests(nDigits = 3, nTimes = 1):
     avg_errors = sum(errors_dfs) / len(errors_dfs)
     return [avg_times.round(nDigits), avg_errors.round(nDigits)]
 
-results = tests(3, 1000)
+results = tests(3, 1)
 print(results[0])
 print(results[1])

@@ -17,10 +17,10 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   # https://johnpaulgosling.github.io/AddiVortes/articles/introduction.html
   test1 <- function(){
   
-  x_train <- as.matrix(read.csv("./datasets/boston/x_train.csv"))
-  y_train <- as.matrix(read.csv("./datasets/boston/y_train.csv"))
-  x_test <- as.matrix(read.csv("./datasets/boston/x_test.csv"))
-  y_test <- as.matrix(read.csv("./datasets/boston/y_test.csv"))
+  x_train <- as.matrix(read.csv("./benchmarks/datasets/boston/x_train.csv"))
+  y_train <- as.matrix(read.csv("./benchmarks/datasets/boston/y_train.csv"))
+  x_test <- as.matrix(read.csv("./benchmarks/datasets/boston/x_test.csv"))
+  y_test <- as.matrix(read.csv("./benchmarks/datasets/boston/y_test.csv"))
   
   # Run the AddiVortes algorithm on the training data
   start.time.fit <- Sys.time()
@@ -59,10 +59,10 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   # https://johnpaulgosling.github.io/AddiVortes/articles/prediction.html
   test2 <- function(){
 
-    x_train <- as.matrix(read.csv("./datasets/synthetic/x_train.csv"))
-    y_train <- as.matrix(read.csv("./datasets/synthetic/y_train.csv"))
-    x_test <- as.matrix(read.csv("./datasets/synthetic/x_test.csv"))
-    y_test <- as.matrix(read.csv("./datasets/synthetic/y_test.csv"))
+    x_train <- as.matrix(read.csv("./benchmarks/datasets/synthetic/x_train.csv"))
+    y_train <- as.matrix(read.csv("./benchmarks/datasets/synthetic/y_train.csv"))
+    x_test <- as.matrix(read.csv("./benchmarks/datasets/synthetic/x_test.csv"))
+    y_test <- as.matrix(read.csv("./benchmarks/datasets/synthetic/y_test.csv"))
     
     # Fit the model
     start.time.fit <- Sys.time()
@@ -88,10 +88,10 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   # https://johnpaulgosling.github.io/AddiVortes/articles/spherical.html
   test3 <- function(){
     
-    x_train <- as.matrix(read.csv("./datasets/spherical/x_train.csv"))
-    y_train <- as.matrix(read.csv("./datasets/spherical/y_train.csv"))
-    x_test <- as.matrix(read.csv("./datasets/spherical/x_test.csv"))
-    y_test <- as.matrix(read.csv("./datasets/spherical/y_test.csv"))
+    x_train <- as.matrix(read.csv("./benchmarks/datasets/spherical/x_train.csv"))
+    y_train <- as.matrix(read.csv("./benchmarks/datasets/spherical/y_train.csv"))
+    x_test <- as.matrix(read.csv("./benchmarks/datasets/spherical/x_test.csv"))
+    y_test <- as.matrix(read.csv("./benchmarks/datasets/spherical/y_test.csv"))
     
     start.time.fit <- Sys.time()
     fit_sph <- AddiVortes(
@@ -120,10 +120,10 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   # https://johnpaulgosling.github.io/AddiVortes/articles/categorical.html
   test4 <- function(){
     
-    x_train <- read.csv("./datasets/categorical/x_train.csv")
-    y_train <- as.matrix(read.csv("./datasets/categorical/y_train.csv"))
-    x_test <- read.csv("./datasets/categorical/x_test.csv")
-    y_test <- as.matrix(read.csv("./datasets/categorical/y_test.csv"))
+    x_train <- read.csv("./benchmarks/datasets/categorical/x_train.csv")
+    y_train <- as.matrix(read.csv("./benchmarks/datasets/categorical/y_train.csv"))
+    x_test <- read.csv("./benchmarks/datasets/categorical/x_test.csv")
+    y_test <- as.matrix(read.csv("./benchmarks/datasets/categorical/y_test.csv"))
     
     start.time.fit <- Sys.time()
     fit <- AddiVortes(
@@ -164,7 +164,7 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
     cat(
       paste(unlist(results), collapse = ","),
       "\n",
-      file = "r-testlog.csv",
+      file = "benchmarks/r-testlog.csv",
       append = TRUE
     )
   }
@@ -176,4 +176,4 @@ tests <- function(nDigits = 3, nTimes = 1){ # nDigits is number of decimal place
   return(list(times=addmargins(avg_time), errors=addmargins(avg_errors)))
 }
 
-tests(3,1000)
+tests(3,1)
