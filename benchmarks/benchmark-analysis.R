@@ -1,7 +1,7 @@
 library(tidyverse)
 
-benchmarks_r <- read.csv("r-testlog.csv")
-benchmarks_python <- read.csv("py-testlog.csv")
+benchmarks_r <- read.csv("benchmarks/r-testlog.csv")
+benchmarks_python <- read.csv("benchmarks/py-testlog.csv")
 
 benchmarks_r$Language <- "R"
 benchmarks_python$Language <- "Python"
@@ -165,8 +165,6 @@ fit_pred_means <- data.frame(
                          sapply(1:4, function(i) mean(benchmarks[benchmarks$Language=="Python", paste0("pred",i)], na.rm=TRUE)))
 )
 
-fit_pred_means[-1] <- round(fit_pred_means[-1], 3)
-
 # ---------------------------
 # Table 2: SDs (Fit & Pred)
 # ---------------------------
@@ -186,8 +184,6 @@ fit_pred_sds <- data.frame(
                          sapply(1:4, function(i) sd(benchmarks[benchmarks$Language=="R", paste0("pred",i)], na.rm=TRUE)),
                          sapply(1:4, function(i) sd(benchmarks[benchmarks$Language=="Python", paste0("pred",i)], na.rm=TRUE)))
 )
-
-fit_pred_sds[-1] <- round(fit_pred_sds[-1], 3)
 
 # -----------------------------
 # Table 3: Means (iRMSE & oRMSE)
@@ -209,8 +205,6 @@ rmse_means <- data.frame(
                           sapply(1:4, function(i) mean(benchmarks[benchmarks$Language=="Python", paste0("oRMSE",i)], na.rm=TRUE)))
 )
 
-rmse_means[-1] <- round(rmse_means[-1], 3)
-
 # ---------------------------
 # Table 4: SDs (iRMSE & oRMSE)
 # ---------------------------
@@ -230,8 +224,6 @@ rmse_sds <- data.frame(
                           sapply(1:4, function(i) sd(benchmarks[benchmarks$Language=="R", paste0("oRMSE",i)], na.rm=TRUE)),
                           sapply(1:4, function(i) sd(benchmarks[benchmarks$Language=="Python", paste0("oRMSE",i)], na.rm=TRUE)))
 )
-
-rmse_sds[-1] <- round(rmse_sds[-1], 3)
 
 write_table <- function(df, name) {
   library(knitr)
@@ -276,7 +268,38 @@ colnames(rmse_sds) <- c(
   "oRMSE % Diff"
 )
 
-write_table(fit_pred_means, "fit_pred_means")
-write_table(fit_pred_sds, "fit_pred_sds")
-write_table(rmse_means, "rmse_means")
-write_table(rmse_sds, "rmse_sds")
+write_table(fit_pred_means, "benchmarks/fit_pred_means")
+write_table(fit_pred_sds, "benchmarks/fit_pred_sds")
+write_table(rmse_means, "benchmarks/rmse_means")
+write_table(rmse_sds, "benchmarks/rmse_sds")
+
+# Appendix A
+
+fit_pred_ses <- fit_pred_sds[,-c(1,4, 7)]/sqrt(106)
+names(fit_pred_ses) <- gsub("SD", "SE", names(fit_pred_ses))
+fit_pred_ses <- fit_pred_ses %>% mutate(Fit.SE..Comb. = sqrt(Fit.SE..R.^2 + Fit.SE..Py.^2),
+                                Pred.SE..Comb. = sqrt(Pred.SE..R.^2 + Pred.SE..Py.^2))
+fit_pred_ses <- data.frame(Test=c("Test 1", "Test 2", "Test 3", "Test 4")) %>% cbind(fit_pred_ses)
+
+rmse_ses <- rmse_sds[,-c(1,4, 7)]/sqrt(106)
+names(rmse_ses) <- gsub("SD", "SE", names(rmse_ses))
+rmse_ses <- rmse_ses %>% mutate(iRMSE.SE.Comb. = sqrt(iRMSE.SE..R.^2 + iRMSE.SE..Py.^2),
+                                oRMSE.SE.Comb. = sqrt(oRMSE.SE..R.^2 + oRMSE.SE..Py.^2))
+rmse_ses <- data.frame(Test=c("Test 1", "Test 2", "Test 3", "Test 4")) %>% cbind(rmse_ses)
+                
+
+write_table(fit_pred_ses, "benchmarks/fit_pred_ses")
+write_table(rmse_ses, "benchmarks/rmse_ses")
+
+fit_pred_sig <- cbind(fit_pred_means %>% 
+  mutate(Fit.Diff = abs(Fit.Mean..R.-Fit.Mean..Py.), Pred.Diff = abs(Pred.Mean..R. - Pred.Mean..Py.)) %>% 
+  select(Test, Fit.Diff, Pred.Diff), fit_pred_ses[,c(6, 7)]) %>% 
+  mutate(Fit.Diff.SEs = Fit.Diff/Fit.SE..Comb., Pred.Diff.SEs = Pred.Diff/Pred.SE..Comb.)
+
+rmse_sig <- cbind(rmse_means %>% 
+                        mutate(iRMSE.Diff = abs(iRMSE.Mean..R.-iRMSE.Mean..Py.), oRMSE.Diff = abs(oRMSE.Mean..R. - oRMSE.Mean..Py.)) %>% 
+                        select(Test, iRMSE.Diff, oRMSE.Diff), rmse_ses[,c(6, 7)]) %>% 
+  mutate(iRMSE.Diff.SEs = iRMSE.Diff/iRMSE.SE.Comb., oRMSE.Diff.SEs = oRMSE.Diff/oRMSE.SE.Comb.)
+
+write_table(fit_pred_sig, "benchmarks/fit_pred_sig")
+write_table(rmse_sig, "benchmarks/rmse_sig")

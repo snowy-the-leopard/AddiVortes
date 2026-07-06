@@ -205,4 +205,54 @@ The mean out-of-sample RMSE using Python gave mixed results in comparison to R. 
 Therefore in terms of out-of-sample RMSEs, it seems that R produces a consistently slightly lower mean, when using the Euclidean metric, however Python seems to be able to produce much more consistent values, and produces a much lower mean out-of-sample RMSE when using the Spherical metric. Hence it is hard to demonstrate any clear preference we should have of either implementation in this regard.
 \section{Conclusion}
 Given that the results obtained using Python are significantly faster and more consistent, and there is only evidence of a very slight reduction in RMSEs when using R, I would recommend the Python implementation for further use and testing.
+\newpage
+\appendix
+\section{Significance of results using standard errors}
+Let $\bar{X}_{f_1}$ be our sample mean fit time for test 1 using R and $\bar{Y}_{f_1}$ be our sample mean fit time for test 1 using Python.
+$$
+Var(\bar{X}_{f_1}-\bar{Y}_{f_1}) = Var(\bar{X}_{f_1}) + Var( \bar{Y}_{f_1})
+$$\\
+Note that we are using samples with 106 observations and hence need to use our standard errors, by scaling our standard deviations from tables 2 and 4 by a factor of $\frac{1}{\sqrt{n}}$. We can then calculate the standard error of the difference of the means:
+$$
+SE(\bar{X}_{f_1}-\bar{Y}_{f_1}) = \sqrt{SE(\bar{X}_{f_1})^2 + SE(\bar{Y}_{f_1})^2}
+$$
+We divide the difference in the mean values $\bar{X}_{f_1}-\bar{Y}_{f_1}$ by the combined standard error to give z-values for these differences. We will consider z-values over 2 as significant (roughly 95\% significance level). The results of these analyses are below:
+\begin{table}[htbp]
+\centering
+\caption{Fit and prediction standard errors}
+\label{tab:fit_pred_ses}
+\begin{adjustbox}{width=\textwidth}
+\input{fit_pred_ses.tex}
+\end{adjustbox}
+\end{table}
+\begin{table}[htbp]
+\centering
+\caption{iRMSE and oRMSE standard errors}
+\label{tab:rmse_ses}
+\begin{adjustbox}{width=\textwidth}
+\input{rmse_ses.tex}
+\end{adjustbox}
+\end{table}
+\begin{table}[htbp]
+\centering
+\caption{Fit and prediction z-values}
+\label{tab:fit_pred_sig}
+\begin{adjustbox}{width=\textwidth}
+\input{fit_pred_sig.tex}
+\end{adjustbox}
+\end{table}
+\begin{table}[htbp]
+\centering
+\caption{iRMSE and oRMSE z-values}
+\label{tab:rmse_sig}
+\begin{adjustbox}{width=\textwidth}
+\input{rmse_sig.tex}
+\end{adjustbox}
+\end{table}
+\newpage
+\textit{Note for the purposes of this analysis we will ignore test 3, the results of which are the artefact of a bug in the code}\\
+\\
+Clearly, all of the differences in fit times and prediction times are highly significant, with Python having the significantly lower times for both. Some of the iRMSE and oRMSE differences are significant, but there are also some insignificant results, especially within oRMSE where significances were significantly lower than in iRMSE.\\
+\\
+Therefore, since there is limited evidence to suggest the R implementation has lower oRMSEs, and there is strong evidence to suggest the Python implementation has faster fit and prediction times, I would suggest Python to be used, this agrees with our previous conclusion.
 \end{document}
