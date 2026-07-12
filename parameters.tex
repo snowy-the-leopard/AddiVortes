@@ -6,41 +6,41 @@
 \begin{document}
 \maketitle
 \begin{center}
-\begin{tabular}{ |c|c|c| }
+\begin{tabular}{ |c|c|c|c| }
 \hline
-\textbf{Choice/parameter} & \textbf{Notation} & \textbf{Default value/Prior distribution}\\
+\textbf{Choice/parameter} & \textbf{Symb} & \textbf{Default value} & \textbf{Search range} \\
 \hline\hline
-Metric to use & $d$ & Euclidean\\
-Number of tessellations & $m$ & 200 \\
+Metric to use & $d$ & Euclidean&\\
+Number of tessellations & $m$ & 200 & [20, 500]\\
 \hline\hline
-Variance of noise & $\sigma$ & $\propto \frac{ \nu \lambda }{ \chi^2 _\nu }$\footnotemark[1]\\[0.1cm]
+Variance of noise & $\sigma$ & $\propto \frac{ \nu \lambda }{ \chi^2 _\nu }$\footnotemark[1]&\\[0.1cm]
 \hline
-Noise degrees of freedom hyperparameter & $\nu$ & $3-10(6)$\\
-Noise alignment hyperparameter & $q$ & $0.7-0.99(0.85)$\\
+Noise degrees of freedom hyperparam & $\nu$ & $3-10(6)$ & [1, 10]\\
+Noise alignment hyperparam & $q$ & $0.7-0.99(0.85)$ & [0.6,0.999]\\
 \hline\hline
-Number of covariates in $T_j$ & $d_j$ & $d_j-1\sim Bin(p-1,\frac{\omega}{p})$ \\
-Number of centers in $T_j$ & $b_j$ &$b_j-1\sim Po(\lambda_c)$ \\
-Covariates included in $T_j$ &--- & Uniformly at random \\
-Coordinates of centers of $T_j$ & --- & $\mathcal{N}(0, \sigma^2_c)$\footnotemark[2]\\
+Number of covariates in $T_j$ & $d_j$ & $d_j-1\sim Bin(p-1,\frac{\omega}{p})$& \\
+Number of centers in $T_j$ & $b_j$ &$b_j-1\sim Po(\lambda_c)$& \\
+Covariates included in $T_j$ &--- & Uniformly at random& \\
+Coordinates of centers of $T_j$ & --- & $\mathcal{N}(0, \sigma^2_c)$\footnotemark[2]&\\
 \hline
-Number of covariates hyperparameter & $\omega$ & $\min(3, p)$ \\
-Number of centers hyperparameter & $\lambda_c$ & \\
-Center coordinates hyperparameter & $\sigma_c$ & \\
+Number of covariates hyperparam & $\omega$ & $\min(3, p)$ & [1, 7] (depends on $p$) \\
+Number of centers hyperparam & $\lambda_c$  & & [1, 50] \\
+Center coordinates hyperparam & $\sigma_c$ & & [0.1, 3]\\
 \hline
 \hline
-Mean response of cell $i$ under tessellation $j$ & $\mu_{ij}$ & $\mathcal{N}(\mu_\mu, \sigma_\mu^2)$\\
+Mean response of cell $i$ under tess $j$ & $\mu_{ij}$ & $\mathcal{N}(\mu_\mu, \sigma_\mu^2)$&\\
 \hline
-Mean response center hyperparameter & $\mu_\mu$ & 0\footnotemark[3]\\
-Mean response spread hyperparameter & $\sigma_\mu$ & $\frac{0.5}{k\sqrt{m}}$\footnotemark[4]\\
-Mean response alignment hyperparameter & $k$ & $3$\\
+Mean response center hyperparam & $\mu_\mu$ & 0\footnotemark[3]&\\
+Mean response spread hyperparam & $\sigma_\mu$ & $\frac{0.5}{k\sqrt{m}}$\footnotemark[4]&\\
+Mean response alignment hyperparam & $k$ & $3$&\\
 \hline\hline
-Probability of adding/removing a center & --- & 0.2\\
-Probability of adding/removing a covariate & --- & 0.2\\
-Probability of swapping a covariate & --- & 0.1\\
-Probability of changing the position of a center & --- & 0.1\\
+Prob of adding/removing a center & --- & 0.2&\\
+Prob of adding/removing a covariate & --- & 0.2&\\
+Prob of swapping a covariate & --- & 0.1&\\
+Prob of changing position of a center & --- & 0.1&\\
 \hline\hline
-Number of MCMC iterations & --- & 1200\\
-Number of MCMC burn-ins & --- & 200\\
+Number of MCMC iterations & --- & 1200 & [500, 100000] \\
+Number of MCMC burn-ins & --- & 200 & [0.01,0.5] (as a proportion) \\
 \hline
 \end{tabular}
 \end{center}
