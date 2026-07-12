@@ -16,7 +16,7 @@
 
 The purpose of this article is to compare the speed and performance of the AddiVortes algorithm between the current up-to-date Python and R implementations. We will benchmark the fitting time of a model, as well as the amount of time required to make simple predictions on a test set, to try to determine which of the two implementations is faster to use. We will also benchmark the in-sample and out-of-sample RMSE on that data to determine which of the two implementations gives predictions with lower errors.
 \\\\
-The code used to generate the benchmarking data, as well as the generated data itself and all referenced files, are available to view at \url{https://github.com/snowy-the-leopard/AddiVortes}. This data was generated using the \textsc{AddiVortes} R package, version 0.6.5, available to view here \url{https://github.com/johnpaulgosling/AddiVortes}, and the \textsc{addivortes} Python package, version 0.6.5, available to view here \url{https://github.com/johnpaulgosling/py-addivortes}.
+The code used to generate the benchmarking data, as well as the generated data itself and all referenced files, are available to view at \url{https://github.com/snowy-the-leopard/AddiVortes}. This data was generated using the \textsc{AddiVortes} R package, version 0.6.6, available to view here \url{https://github.com/johnpaulgosling/AddiVortes}, and the \textsc{addivortes} Python package, version 0.6.6, available to view here \url{https://github.com/johnpaulgosling/py-addivortes}.
 
 \section{Benchmarking methodology}
 To ensure fairness, consistency, and accuracy with these tests, the following controls were implemented on these benchmarks:
@@ -181,32 +181,30 @@ The full benchmarks, which carry out model fitting and prediction on the above 4
 \caption{In-sample and out-of-sample RMSE across datasets.}
 \end{figure}
 \newpage
-\section{Analysis of results}
+\section{Preliminary analysis of results}
 \subsection{Fit times}
-The mean fit time using Python was lower for all models, and substantially lower for all models, excluding model 3 (spherical). With an average decrease of 22\% in mean fit time using Python, we can certainly conclude that the Python implementation is significantly faster than R at fitting the AddiVortes model using a Euclidean metric.
-The standard deviation of fit times using Python was significantly lower for all models, with an average decrease of 73\% when using Python instead of R.
+The mean fit time using Python was substantially lower for all models. With an average decrease of 23\% in mean fit time using Python, we can certainly conclude that the Python implementation is significantly faster than R at fitting the AddiVortes model using a Euclidean metric.
+The standard deviation of fit times using Python gave mixed results when compared to using R, but for the first 3 models Python has either roughly the same, or a much lower standard deviation for fit times.
 \\
 \\
 Therefore in terms of both lower and more consistent fit times, Python is superior.
 \subsection{Prediction times}
-The mean prediction time using Python was significantly lower for all models, with an average decrease of 51\% when using Python instead of R. The standard deviation of fit times using Python was significantly lower for all models, with an average decrease of 77\% when using Python instead of R.
+The mean prediction time using Python was significantly lower for all models, with an average decrease of 45\% when using Python instead of R. The standard deviation of prediction times using Python was significantly lower for all models, with an average decrease of 54\% when using Python instead of R.
 \\
 \\
-Therefore in terms of both lower and more consistent fit times, Python is superior.
+Therefore in terms of both lower and more consistent prediction times, Python is superior.
 \subsection{In-sample RMSEs}
 The mean in-sample RMSE using Python was slightly higher for all models, with an average increase of 2\% when using Python instead of R. The standard deviation of in-sample RMSEs using Python gave mixed results in comparison to R. The standard deviation of in-sample RMSEs on model 1 was significantly higher. This model, representing real world data that could be more unstructured than the synthetic datasets we generated, should be the most significant for us here, where the other differences vary in sign.
 \\
 \\
 Therefore in terms of lower and more consistent in-sample RMSEs, we should take a slight preference for R, with its slightly, but consistently, better mean in-sample RMSEs, and its proficiency for more consistent in-sample RMSEs with the real-world dataset used.
 \subsection{Out-of-sample RMSEs}
-The mean out-of-sample RMSE using Python gave mixed results in comparison to R. The mean out-of-sample RMSE was almost the same for models 1 and 4, with only a slight increase for model 2. This shows that R also has a slightly lower mean out-of-sample RMSE using a Euclidean metric. On the other hand, the out-of-sample RMSE was significantly lower for model 3 (spherical), with a reduction of 51\% in mean value. The standard deviation of out-of-sample RMSEs using Python was significantly lower for models 2 and 3, with models 1 and 4 having much smaller changes with varying sign. This demonstrates that Python can generate much more consistent out-of-sample RMSEs.
+The mean out-of-sample RMSE using Python consistently gave slightly higher values, with an average increase of 2\% across the 4 models. The standard deviation of out-of-sample RMSEs using Python gave mixed results, but overall seemed to be higher, with an average increase of 7\% across the 4 models. This demonstrates that R generates more consistent out-of-sample RMSEs
 \\
 \\
-Therefore in terms of out-of-sample RMSEs, it seems that R produces a consistently slightly lower mean, when using the Euclidean metric, however Python seems to be able to produce much more consistent values, and produces a much lower mean out-of-sample RMSE when using the Spherical metric. Hence it is hard to demonstrate any clear preference we should have of either implementation in this regard.
-\section{Conclusion}
-Given that the results obtained using Python are significantly faster and more consistent, and there is only evidence of a very slight reduction in RMSEs when using R, I would recommend the Python implementation for further use and testing.
+\\
+Therefore in terms of lower and more consistent out-of-sample RMSEs, we should take a slight preference for R
 \newpage
-\appendix
 \section{Significance of results using standard errors}
 Let $\bar{X}_{f_1}$ be our sample mean fit time for test 1 using R and $\bar{Y}_{f_1}$ be our sample mean fit time for test 1 using Python.
 $$
@@ -250,9 +248,7 @@ We divide the difference in the mean values $\bar{X}_{f_1}-\bar{Y}_{f_1}$ by the
 \end{adjustbox}
 \end{table}
 \newpage
-\textit{Note for the purposes of this analysis we will ignore test 3, the results of which are the artefact of a bug in the code}\\
+Clearly, all of the differences in fit times and prediction times are highly significant, with Python having the significantly lower times for both. Some of the iRMSE and oRMSE differences are significant, but there are also some insignificant results, especially within oRMSE where significances were lower than in iRMSE.\\
 \\
-Clearly, all of the differences in fit times and prediction times are highly significant, with Python having the significantly lower times for both. Some of the iRMSE and oRMSE differences are significant, but there are also some insignificant results, especially within oRMSE where significances were significantly lower than in iRMSE.\\
-\\
-Therefore, since there is limited evidence to suggest the R implementation has lower oRMSEs, and there is strong evidence to suggest the Python implementation has faster fit and prediction times, I would suggest Python to be used, this agrees with our previous conclusion.
+Therefore, since there is limited evidence to suggest the R implementation has lower oRMSEs, and there is strong evidence to suggest the Python implementation has faster fit and prediction times, I would suggest Python to be used for further implementation and investigation
 \end{document}
