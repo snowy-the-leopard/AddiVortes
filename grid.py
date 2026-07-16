@@ -2,14 +2,14 @@ def create_factorial_grid(m_options = 2,
                            nu_options = 2,
                              q_options = 2,
                                omega_options = 2,
-                                 lamba_c_options = 2,
+                                 lambda_c_options = 2,
                                      iter_options = 2,
                                        burnin_options = 2):
     m_range = [20, 500]
     nu_range = [1,10]
     q_range = [0.6, 0.999]
     omega_range = [1, 7]
-    lamba_c_range = [1,50]
+    lambda_c_range = [1,50]
     iter_range = [500,100000]
     burnin_range = [0.01, 0.5]
 
@@ -21,21 +21,22 @@ def create_factorial_grid(m_options = 2,
     nu_grid = np.round(np.linspace(nu_range[0], nu_range[1], nu_options)).astype(int)
     q_grid = np.linspace(q_range[0], q_range[1], q_options)
     omega_grid = np.round(np.linspace(omega_range[0], omega_range[1], omega_options)).astype(int)
-    lamba_c_grid = np.round(np.linspace(lamba_c_range[0], lamba_c_range[1], lamba_c_options)).astype(int)
+    lambda_c_grid = np.round(np.linspace(lambda_c_range[0], lambda_c_range[1], lambda_c_options)).astype(int)
     iter_grid = np.round(np.linspace(iter_range[0], iter_range[1], iter_options)).astype(int)
     burnin_grid = np.linspace(burnin_range[0], burnin_range[1], burnin_options)
 
     output_path = Path(__file__).with_name("grid.csv")
     with output_path.open("a", newline="", encoding="utf-8") as csv_file:
         writer = csv.writer(csv_file)
+        writer.writerow(["m", "nu", "q", "omega", "lambda_c", "iter", "burnin"])
         for m in m_grid:
             for nu in nu_grid:
                 for q in q_grid:
                     for omega in omega_grid:
-                        for lamba_c in lamba_c_grid:
+                        for lambda_c in lambda_c_grid:
                                 for iter in iter_grid:
                                     for burnin in burnin_grid:
-                                        writer.writerow([m, nu, q, omega, lamba_c, iter, burnin])
+                                        writer.writerow([m, nu, q, omega, lambda_c, iter, burnin])
 
     return output_path
 
