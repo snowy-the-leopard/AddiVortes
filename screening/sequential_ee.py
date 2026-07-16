@@ -75,20 +75,18 @@ def order_by_max_distance(points: np.ndarray) -> np.ndarray:
 # --------------------------------------------------------------------------
 
 def _oat_trajectory(x0: np.ndarray, factor_order: Sequence[int], delta: float):
-    """Build the one-at-a-time path starting at x0, moving only through
-    the coordinates listed in `factor_order` (in that order), each by
-    +/- delta (whichever direction keeps the point inside [0,1]^k).
-
-    Returns:
-        pts:   list of len(factor_order)+1 points along the path
-        steps: list of the signed delta actually used for each move,
-               aligned with factor_order
-    """
     pts = [x0.copy()]
     steps = []
     current = x0.copy()
     for j in factor_order:
-        step = delta if current[j] + delta <= 1.0 + 1e-9 else -delta
+        if current[j] + delta <= 1.0 + 1e-9:
+            step = delta
+        elif current[j] - delta >= -1e-9:
+            step = -delta
+        else:
+            # Neither full +/- delta step fits (only possible when delta > 0.5).
+            # Take a partial step to whichever boundary is closer.
+            step = (1.0 - current[j]) if (1.0 - current[j]) <= current[j] else -current[j]
         nxt = current.copy()
         nxt[j] = current[j] + step
         pts.append(nxt)

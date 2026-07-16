@@ -38,6 +38,7 @@ def main() -> None:
         for name in parameter_names
         if name in bounds
     }
+    print("burnin bounds:", bounds.get("burnin"))
     baseline = {
         "m": 200.0,
         "nu": 6.0,
@@ -62,6 +63,7 @@ def main() -> None:
             random_state=0,
             verbose=False,
         )
+        print("Model fit occured")
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
         return float(np.sqrt(np.mean((y_test - preds) ** 2)))
