@@ -276,13 +276,13 @@ write_table(rmse_sds, "rmse_sds")
 
 # Appendix A
 
-fit_pred_ses <- fit_pred_sds[,-c(1,4, 7)]/sqrt(106)
+fit_pred_ses <- fit_pred_sds[,-c(1,4, 7)]/sqrt(500)
 names(fit_pred_ses) <- gsub("SD", "SE", names(fit_pred_ses))
 fit_pred_ses$'Fit SE (Comb)' <- sqrt(fit_pred_ses$`Fit SE (R)`^2 + fit_pred_ses$`Fit SE (Python)`^2)
 fit_pred_ses$'Pred SE (Comb)' <- sqrt(fit_pred_ses$`Pred SE (R)`^2 + fit_pred_ses$`Pred SE (Python)`^2)
 fit_pred_ses <- data.frame(Test=c("Test 1", "Test 2", "Test 3", "Test 4")) %>% cbind(fit_pred_ses)
 
-rmse_ses <- rmse_sds[,-c(1,4, 7)]/sqrt(106)
+rmse_ses <- rmse_sds[,-c(1,4, 7)]/sqrt(500)
 names(rmse_ses) <- gsub("SD", "SE", names(rmse_ses))
 rmse_ses$'iRMSE SE (Comb)' <- sqrt(rmse_ses$`iRMSE SE (R)` ^2 + rmse_ses$`iRMSE SE (Python)`^2)
 rmse_ses$'oRMSE SE (Comb)' <- sqrt(rmse_ses$`oRMSE SE (R)`^2 + rmse_ses$`oRMSE SE (Python)`^2)

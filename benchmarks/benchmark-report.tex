@@ -39,7 +39,7 @@ We have constructed random longitudes and latitudes to represent positions on a 
 \subsection{Categorical dataset}
 We have constructed this dataset using random numerical and categorical covariates, as well as a noisy response function. This consists of 2 numerical and 2 categorical covariates, and we model it using the following fixed parameters, with the rest of the parameters taking their default values: \texttt{m = 50, totalMCMCiter = 500, mcmcBurnIn = 100, catScaling = 1}
 \section{Benchmark results}
-The full benchmarks, which carry out model fitting and prediction on the above 4 datasets, were run for 106 iterations each. The code can be found at \nolinkurl{AddiVortes\ tests.R} and \nolinkurl{AddiVortes\ tests.py}
+The full benchmarks, which carry out model fitting and prediction on the above 4 datasets, were run for 500 iterations each. The code can be found at \nolinkurl{AddiVortes\ tests.R} and \nolinkurl{AddiVortes\ tests.py}
 
 \begin{table}[htbp]
 \centering
@@ -183,34 +183,33 @@ The full benchmarks, which carry out model fitting and prediction on the above 4
 \newpage
 \section{Preliminary analysis of results}
 \subsection{Fit times}
-The mean fit time using Python was substantially lower for all models. With an average decrease of 23\% in mean fit time using Python, we can certainly conclude that the Python implementation is significantly faster than R at fitting the AddiVortes model using a Euclidean metric.
-The standard deviation of fit times using Python gave mixed results when compared to using R, but for the first 3 models Python has either roughly the same, or a much lower standard deviation for fit times.
+The mean fit time using Python was substantially lower for all models. With an average decrease of 9\% in mean fit time using Python, we can certainly conclude that the Python implementation is significantly faster than R at fitting the AddiVortes model using a Euclidean metric.
+The standard deviation of fit times using Python gave mixed results when compared to using R, but for the first 3 models Python has much higher standard deviations for fit time.
 \\
 \\
-Therefore in terms of both lower and more consistent fit times, Python is superior.
+Hence, Python produces lower but less consistent fit times than R.
 \subsection{Prediction times}
-The mean prediction time using Python was significantly lower for all models, with an average decrease of 45\% when using Python instead of R. The standard deviation of prediction times using Python was significantly lower for all models, with an average decrease of 54\% when using Python instead of R.
+The mean prediction time using Python was significantly lower for all models, with an average decrease of 38\% when using Python instead of R. The standard deviation of prediction times using Python was significantly lower for all models, with an average decrease of 35\% when using Python instead of R.
 \\
 \\
 Therefore in terms of both lower and more consistent prediction times, Python is superior.
 \subsection{In-sample RMSEs}
-The mean in-sample RMSE using Python was slightly higher for all models, with an average increase of 2\% when using Python instead of R. The standard deviation of in-sample RMSEs using Python gave mixed results in comparison to R. The standard deviation of in-sample RMSEs on model 1 was significantly higher. This model, representing real world data that could be more unstructured than the synthetic datasets we generated, should be the most significant for us here, where the other differences vary in sign.
+The mean in-sample RMSE using Python was slightly higher for all models, with an average increase of 2\% when using Python instead of R. The standard deviation of in-sample RMSEs using Python were on average 4\% higher than when using R.
 \\
 \\
-Therefore in terms of lower and more consistent in-sample RMSEs, we should take a slight preference for R, with its slightly, but consistently, better mean in-sample RMSEs, and its proficiency for more consistent in-sample RMSEs with the real-world dataset used.
+Therefore it is unlikely there is a significant difference between in-sample RMSEs between R and Python.
 \subsection{Out-of-sample RMSEs}
-The mean out-of-sample RMSE using Python consistently gave slightly higher values, with an average increase of 2\% across the 4 models. The standard deviation of out-of-sample RMSEs using Python gave mixed results, but overall seemed to be higher, with an average increase of 7\% across the 4 models. This demonstrates that R generates more consistent out-of-sample RMSEs
+The mean out-of-sample RMSE using Python consistently gave slightly higher values, with an average increase of 1\% across the 4 models. The standard deviation of out-of-sample RMSEs using Python gave mixed results, but overall seemed to be higher, with an average increase of 3\% across the 4 models.
 \\
 \\
-\\
-Therefore in terms of lower and more consistent out-of-sample RMSEs, we should take a slight preference for R
+Therefore it is unlikely there is a significant difference between out-of-sample RMSEs between R and Python
 \newpage
 \section{Significance of results using standard errors}
 Let $\bar{X}_{f_1}$ be our sample mean fit time for test 1 using R and $\bar{Y}_{f_1}$ be our sample mean fit time for test 1 using Python.
 $$
 Var(\bar{X}_{f_1}-\bar{Y}_{f_1}) = Var(\bar{X}_{f_1}) + Var( \bar{Y}_{f_1})
 $$\\
-Note that we are using samples with 106 observations and hence need to use our standard errors, by scaling our standard deviations from tables 2 and 4 by a factor of $\frac{1}{\sqrt{n}}$. We can then calculate the standard error of the difference of the means:
+Note that we are using samples with 500 observations and hence need to use our standard errors, by scaling our standard deviations from tables 2 and 4 by a factor of $\frac{1}{\sqrt{n}}$. We can then calculate the standard error of the difference of the means:
 $$
 SE(\bar{X}_{f_1}-\bar{Y}_{f_1}) = \sqrt{SE(\bar{X}_{f_1})^2 + SE(\bar{Y}_{f_1})^2}
 $$
@@ -248,7 +247,7 @@ We divide the difference in the mean values $\bar{X}_{f_1}-\bar{Y}_{f_1}$ by the
 \end{adjustbox}
 \end{table}
 \newpage
-Clearly, all of the differences in fit times and prediction times are highly significant, with Python having the significantly lower times for both. Some of the iRMSE and oRMSE differences are significant, but there are also some insignificant results, especially within oRMSE where significances were lower than in iRMSE.\\
+Clearly, the vast majority of the differences in fit times and prediction times are highly significant, with Python having the significantly lower times for both. Some of the iRMSE and oRMSE differences are significant, but there are also some insignificant results, especially within oRMSE where significances were lower than in iRMSE.\\
 \\
 Therefore, since there is limited evidence to suggest the R implementation has lower oRMSEs, and there is strong evidence to suggest the Python implementation has faster fit and prediction times, I would suggest Python to be used for further implementation and investigation
 \end{document}
