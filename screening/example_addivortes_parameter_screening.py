@@ -92,8 +92,17 @@ def main() -> None:
     print("Linear/negligible parameters:", [parameter_names[i] for i in result.linear_factors])
     print("Nonlinear/interacting parameters:", [parameter_names[i] for i in result.nonlinear_factors])
 
-    plot_final_effects(result)
-    plot_iteration_grid(result)
+    ax1 = plot_final_effects(result)
+    fig1 = ax1.figure
+
+    fig2, axes2 = plot_iteration_grid(result)
+
+    out_dir = root / "outputs"
+    out_dir.mkdir(exist_ok=True)
+
+    fig1.savefig(out_dir / "final_effects.png", dpi=300, bbox_inches="tight")
+    fig2.savefig(out_dir / "iteration_grid.png", dpi=300, bbox_inches="tight")
+
     plt.show()
 
 
