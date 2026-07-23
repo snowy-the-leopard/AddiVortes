@@ -51,18 +51,13 @@ cat("After filtering to magType == 'mb' and status == 'reviewed':",
 
 # ---- 6. Drop now-constant filtering columns ----
 # After subsetting, 'magType' and 'status' are constant and carry no information.
-df_clean <- df_clean[, !(names(df_clean) %in% c("magType", "status"))]
+df_clean <- df_clean[, !(names(df_clean) %in% c("magType", "status", "net"))]
 cat("After dropping constant columns magType and status:",
     nrow(df_clean), "rows and", ncol(df_clean), "columns\n\n")
 
 # ---- 7. Sanity checks ----
 cat("Final shape:", nrow(df_clean), "rows x", ncol(df_clean), "columns\n")
 cat("Total missing values remaining:", sum(is.na(df_clean)), "\n\n")
-
-cat("Categorical cardinality:\n")
-for (col in c("net")) {
-  cat(" ", col, "->", length(unique(df_clean[[col]])), "levels\n")
-}
 
 # ---- 8. Write out the cleaned file ----
 write.csv(df_clean, "earthquakes.csv", row.names = FALSE)

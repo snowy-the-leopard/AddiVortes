@@ -120,3 +120,20 @@ write.csv(x[train_idx,], "./datasets/categorical/x_train.csv", row.names = FALSE
 write.csv(x[-train_idx,], "./datasets/categorical/x_test.csv", row.names = FALSE)
 write.csv(y[train_idx], "./datasets/categorical/y_train.csv", row.names = FALSE)
 write.csv(y[-train_idx], "./datasets/categorical/y_test.csv", row.names = FALSE)
+
+# Further testing - Earthquakes dataset
+
+earthquakes <- read.csv("./datasets/earthquakes/earthquakes.csv")
+
+n <- nrow(earthquakes)
+TrainSet <- sort(sample.int(n, 0.8 * n))
+TestSet <- setdiff(1:n, TrainSet)
+
+train_data <- earthquakes[TrainSet,]
+test_data <- earthquakes[TestSet,]
+
+write.csv(train_data[,-4], "./datasets/earthquakes/x_train.csv", row.names=FALSE)
+write.csv(train_data[,4], "./datasets/earthquakes/y_train.csv", row.names=FALSE)
+write.csv(test_data[,-4], "./datasets/earthquakes/x_test.csv", row.names=FALSE)
+write.csv(test_data[,4], "./datasets/earthquakes/y_test.csv", row.names=FALSE)
+

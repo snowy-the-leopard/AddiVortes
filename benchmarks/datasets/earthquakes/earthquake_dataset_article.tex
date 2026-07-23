@@ -83,7 +83,7 @@ benchmark covariate set; (iii) removing the small proportion of rows with
 residual missing values in the quality-control columns; (iv) subsetting to
 reviewed body-wave magnitude events, i.e. \texttt{magType == "mb"} and
 \texttt{status == "reviewed"}; and (v) dropping the now-constant
-\texttt{magType} and \texttt{status} columns from the retained covariate set.
+\texttt{magType}, \texttt{status}, and \texttt{net} columns from the retained covariate set.
 The full cleaning pipeline, implemented in R, is reproduced below.
 
 \begin{lstlisting}[style=Rstyle, caption={R script used to clean the raw USGS earthquake catalog extract.}, label={lst:clean}]
@@ -136,8 +136,8 @@ cat("After filtering to magType == 'mb' and status == 'reviewed':",
     nrow(df_clean), "rows (dropped", before_n - nrow(df_clean), ")\n\n")
 
 # ---- 6. Drop now-constant filtering columns ----
-# After subsetting, 'magType' and 'status' are constant and carry no information.
-df_clean <- df_clean[, !(names(df_clean) %in% c("magType", "status"))]
+# After subsetting, 'magType', 'status', and 'net' are constant and carry no information.
+df_clean <- df_clean[, !(names(df_clean) %in% c("magType", "status", "net"))]
 cat("After dropping constant columns magType and status:",
     nrow(df_clean), "rows and", ncol(df_clean), "columns\n\n")
 
@@ -145,18 +145,13 @@ cat("After dropping constant columns magType and status:",
 cat("Final shape:", nrow(df_clean), "rows x", ncol(df_clean), "columns\n")
 cat("Total missing values remaining:", sum(is.na(df_clean)), "\n\n")
 
-cat("Categorical cardinality:\n")
-for (col in c("net")) {
-  cat(" ", col, "->", length(unique(df_clean[[col]])), "levels\n")
-}
-
 # ---- 8. Write out the cleaned file ----
 write.csv(df_clean, "earthquakes.csv", row.names = FALSE)
 cat("\nSaved cleaned file to earthquakes.csv\n")
 \end{lstlisting}
 
 Applying this pipeline reduced the raw extract from 20{,}000 rows and 19 columns
-to a final cleaned dataset of 11{,}697 rows and 12 columns, with zero remaining
+to a final cleaned dataset of 11{,}697 rows and 11 columns, with zero remaining
 missing values. Table~\ref{tab:pipeline} summarises each stage.
 
 \begin{table}[h]
@@ -170,7 +165,7 @@ After filtering to \texttt{type == "earthquake"} & 19{,}841 & 19 \\
 After dropping redundant columns & 19{,}841 & 14 \\
 After dropping incomplete rows & 18{,}732 & 14 \\
 After subsetting to \texttt{magType == "mb"} and \texttt{status == "reviewed"} & 11{,}697 & 14 \\
-After dropping constant \texttt{magType} and \texttt{status} columns & 11{,}697 & 12 \\
+After dropping constant \texttt{magType}, \texttt{status}, and \texttt{net} columns & 11{,}697 & 11 \\
 \bottomrule
 \end{tabular}
 \caption{Row and column counts at each stage of the cleaning pipeline.}
@@ -179,7 +174,7 @@ After dropping constant \texttt{magType} and \texttt{status} columns & 11{,}697 
 
 \section{Covariate Descriptions}
 
-Table 1 describes each of the 12 covariates retained in the
+Table 1 describes each of the 11 covariates retained in the
 final cleaned dataset, along with its type and the range (for numeric variables)
 or levels (for categorical variables) observed in the data.
 
@@ -207,8 +202,6 @@ or levels (for categorical variables) observed in the data.
 \addlinespace
 \texttt{rms} & Numeric & Root-mean-square of the travel-time residuals, in seconds; a location goodness-of-fit measure. & $0$ to $2.0$ s \\
 \addlinespace
-\texttt{net} & Categorical & Seismic network that contributed the preferred origin (e.g.\ national or regional networks). & 12 levels, dominated by \texttt{us} (16{,}088 rows) \\
-\addlinespace
 \texttt{horizontalError} & Numeric & 95\% confidence radius on the epicenter location, in kilometers. & $0$ to $40.8$ km \\
 \addlinespace
 \texttt{depthError} & Numeric & 95\% confidence uncertainty on the depth estimate, in kilometers. & $0$ to $42.9$ km \\
@@ -224,13 +217,9 @@ or levels (for categorical variables) observed in the data.
 
 \section{Notes for Model Testing}
 
-One covariate warrants caution during testing: \texttt{net} is highly
-imbalanced, with the \texttt{us} network accounting for roughly 80\% of
-observations; this may limit the effective diversity of that categorical
-covariate for split-finding. Aside from that variable, the dataset offers a
+This dataset offers a
 genuine mix of scales and types --- degrees, kilometers, seconds, magnitude
-units, and station counts among the numeric covariates, together with a single
-categorical covariate --- with global latitude/longitude coverage and no missing
+units, and station counts among the numeric covariates, with global latitude/longitude coverage and no missing
 data, making it well suited to benchmarking AddiVortes against both great-circle
 and Euclidean distance metrics.
 
