@@ -365,6 +365,59 @@ We then fit an AddiVortes model using each row of parameter settings from the gr
 TODO analysis of the partial results obtained. 
 \subsection{Parameter screening}
 In order to determine which parameters have a non-linear effect on the metrics, these being the parameters whose effect on the metrics would have to be investigated more closely, we carried out screening. The method used is built upon the elementary effects (EE) method for screening and uses a threshold value to separate the inputs with linear and nonlinear effects\cite{screening-paper}. The code used to implement this method can be found at \nolinkurl{AddiVortes\ screening}.\\\\ TODO screening analysis
+\subsection{Testing sensitivity of key metrics to change in dataset size}
+We wanted to explore how our key metrics, namely, in-sample, and out-of-sample RMSE, as well as our model fit and prediction times grow as the number of observations in the dataset ($n$) grows.
+
+I wrote code to generate random subsets of the Earthquake dataset of sizes $n=100, 200, \cdots, 10000$. In order to obtain a broader picture of the trends as we vary $n$, each size, e.g. $n=100$ was generated independently $k$ times, taking the maximum possible value of $k$ such that $nk\leq 100000$, to bound the time needed to generate and work on subsets of any given size, and make each batch size a suitable unit process for multiprocessing. This was implemented to minimise the random noise in the metrics as we take varying sub-populations of the full data. This leads to us taking $k = \lfloor \frac{100000}{n}\rfloor$. The code used to generate the subsets, as well as the subsets themselves for reproducibility, are available at \nolinkurl{AddiVortes\ effects \ n}\cite{repo}
+
+Once the subsets were generated, an AddiVortes fit was carried out on each subset, and the median statistics over each batch size were calculated. The results of which can be found at \nolinkurl{AddiVortes\ effects\ n\ addivortes_results.csv}. Graphs of the result summaries are below:
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../effects/n/graphs/fit.jpg}
+        \caption{Median fit time}
+        \label{fig:fit}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../effects/n/graphs/pred.jpg}
+        \caption{Median prediction time}
+        \label{fig:pred}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../effects/n/graphs/iRMSE.jpg}
+        \caption{In-sample RMSE}
+        \label{fig:irmse}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../effects/n/graphs/oRMSE.jpg}
+        \caption{Out-of-sample RMSE}
+        \label{fig:ormse}
+    \end{subfigure}
+    
+    \caption{Performance metrics as a function of subset size $n$.}
+    \label{fig:grid}
+\end{figure}
+The red fit lines on the fit and prediction time graphs are linear, with small intercept coefficients ($1.188$ and $1.367$ respectively for this data), which represent the overheads in the fit and prediction algorithms. Since the intercept term is small, when we double our number of observations $n$, we expect our prediction and fit time to also roughly double. These linear models fit the data well with adjusted $R^2$ values of $0.9992$ and $0.9993$ respectively.
+
+The red fit lines for the in-sample and out-of-sample RMSEs instead use an asymptomatic model of the following form:
+\begin{equation} y = a + b\exp(-nc) \end{equation}.\\
+This represents our theoretical understanding of RMSEs, with in-sample RMSE rising as we increase n, and the model has to be more flexible to fit a wider set of values, eventually flattening out, and out-of-sample RMSE falling as the wider set of data allows for a more flexible trained model which allows for greater predictive power on unseen data.
+
+As visible in figure 4, in-sample RMSE starts off very high before taking a dramatic drop and then increasing steadily along towards the asymptote. This can be explained since for low values of $n$ we would expect the random subsets to not be a representative sample of a much larger, and complex dataset such as the Earthquakes dataset. Hence, for our fit here we have ignored values of $n<1000$ to allow for a better fit with this model. Both of these models were fit using non-linear least squares to estimate the optimal values of the parameters. This yielded adjusted $R^2$ values of 0.9742 and 0.9450 for in-sample and out-of-sample respectively.
+
+In this model, if we double $n$, we expect the value of $y-a$ to increase by a factor depending on $n$.
+\begin{align}
+y_0 = a+b\exp(-nc), y_1=a+b\exp(-2nc)\\
+\frac{y_1 - a}{y_0 - a} = \frac{b\exp(-2nc)}{b\exp(-nc)}=\exp(-nc)\propto \exp(-n)
+\end{align}
+Hence when we double our number of observations from a starting value of $n$, we only expect our out-of-sample RMSE to decrease by a factor proportional to $\exp(-n)$.
+
+This clearly demonstrates that there will be some threshold of diminishing returns where increasing $n$ will have a large effect on the fit and prediction time of the model but will have a very minimal effect on the out-of-sample RMSE, and hence at a certain value of $n$ we want to stop increasing it, as we deem to have already gotten low enough out-of-sample RMSE.
 \newpage
 \bibliography{bibliography}
 \end{document}
