@@ -5,13 +5,28 @@ file_arg <- script_args[grepl("^--file=", script_args)]
 script_dir <- "~/R projects/AddiVortes/effects/params"
 setwd(script_dir)
 
-results_path <- file.path(script_dir, "settings_results.csv")
+results_paths <- file.path(
+  script_dir,
+  c("settings_results.csv", "settings_results2.csv")
+)
 output_dir <- file.path(script_dir, "graphs")
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 
-results <- read.csv(results_path, check.names = FALSE)
+results <- purrr::map_dfr(
+  results_paths,
+  ~ read.csv(.x, check.names = FALSE)
+)
 
 parameters <- c("m", "nu", "q", "omega", "lambda", "mcmcIter", "mcmcBurnin")
+default_parameter_values <- c(
+  m = 200,
+  nu = 6,
+  q = 0.85,
+  omega = 3,
+  lambda = 25,
+  mcmcIter = 1200,
+  mcmcBurnin = 200
+)
 metric_columns <- c(
   "Fit time",
   "Prediction time",
@@ -31,6 +46,9 @@ metric_labels <- c(
   "In-sample RMSE" = "In-sample RMSE",
   "Out-of-sample RMSE" = "Out-of-sample RMSE"
 )
+x_labels <- c(
+  mcmcBurnin = "MCMC burn-in proportion"
+)
 metric_filenames <- c(
   "Fit time" = "fit.jpg",
   "Prediction time" = "pred.jpg",
@@ -39,14 +57,35 @@ metric_filenames <- c(
 )
 
 build_plot_data <- function(results, parameter, metric_name) {
-  results %>%
+  plot_data <- results %>%
     filter(changed_parameter == parameter) %>%
-    select(all_of(c(parameter, metric_name))) %>%
+    select(all_of(unique(c(parameter, "mcmcIter", metric_name)))) %>%
+    mutate(across(everything(), as.numeric)) %>%
     rename(x = !!parameter, y = !!metric_name) %>%
-    mutate(
-      x = as.numeric(x),
-      y = as.numeric(y)
+    mutate(x = as.numeric(x), y = as.numeric(y))
+
+  if (parameter == "mcmcBurnin") {
+    plot_data <- plot_data %>% mutate(x = x / mcmcIter)
+  } else if (parameter == "m") {
+    max_x <- max(plot_data$x, na.rm = TRUE)
+    low_max <- min(400, max_x)
+    low_targets <- seq(
+      min(plot_data$x, na.rm = TRUE),
+      low_max,
+      length.out = min(5, nrow(plot_data))
     )
+    high_targets <- if (max_x >= 500) seq(500, max_x, by = 100) else numeric(0)
+    targets <- unique(c(low_targets, high_targets))
+
+    plot_data <- purrr::map_dfr(
+      targets,
+      ~ plot_data %>% slice_min(abs(x - .x), n = 1, with_ties = FALSE)
+    ) %>%
+      distinct(x, .keep_all = TRUE) %>%
+      arrange(x)
+  }
+
+  plot_data
 }
 
 add_best_fit_line <- function(plot, plot_data, fit_model = NULL, color = "tomato") {
@@ -98,10 +137,22 @@ add_best_fit_line <- function(plot, plot_data, fit_model = NULL, color = "tomato
 make_metric_plot <- function(results, parameter, metric_name, fit_model = NULL) {
   plot_data <- build_plot_data(results, parameter, metric_name)
 
+  xintercept <- default_parameter_values[[parameter]]
+  x_label <- parameter
+  if (parameter == "mcmcBurnin") {
+    xintercept <- default_parameter_values[[parameter]] /
+      default_parameter_values[["mcmcIter"]]
+    x_label <- x_labels[[parameter]]
+  }
+
   plot <- ggplot(plot_data, aes(x = x, y = y)) +
     geom_point(size = 1.2) +
+    geom_vline(
+      xintercept = xintercept,
+      linetype = "dotted"
+    ) +
     labs(
-      x = parameter,
+      x = x_label,
       y = metric_labels[[metric_name]],
       title = paste(metric_labels[[metric_name]], "against", parameter)
     ) +
@@ -150,10 +201,46 @@ asymptotic_fit <- function(plot_data) {
   )
 }
 
+zero_asymptote_fit <- function(plot_data) {
+  positive_data <- plot_data %>% filter(y > 0)
+  if (nrow(positive_data) < 2 || n_distinct(positive_data$x) < 2) {
+    return(NULL)
+  }
+
+  positive_data <- positive_data %>% filter(x > 0)
+  if (nrow(positive_data) < 2) {
+    return(NULL)
+  }
+
+  fit <- tryCatch(
+    lm(log(y) ~ log(x), data = positive_data),
+    error = function(e) NULL
+  )
+  if (is.null(fit)) {
+    return(NULL)
+  }
+
+  coefficients <- coef(fit)
+  if (any(!is.finite(coefficients)) || coefficients[[2]] >= 0) {
+    return(NULL)
+  }
+
+  x_grid <- data.frame(x = seq(
+    min(plot_data$x, na.rm = TRUE),
+    max(plot_data$x, na.rm = TRUE),
+    length.out = 200
+  ))
+
+  data.frame(
+    x = x_grid$x,
+    y = exp(predict(fit, newdata = data.frame(x = x_grid$x)))
+  )
+}
+
 custom_fit_models <- list(
   `m|Fit time` = y ~ x,
   `m|Prediction time` = y ~ x,
-  `m|In-sample RMSE` = asymptotic_fit,
+  `m|In-sample RMSE` = zero_asymptote_fit,
   `m|Out-of-sample RMSE` = asymptotic_fit,
   `mcmcIter|Fit time` = y ~ x,
   `mcmcIter|Prediction time` = y ~ x,

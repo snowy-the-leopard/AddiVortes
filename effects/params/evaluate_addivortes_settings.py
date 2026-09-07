@@ -178,6 +178,7 @@ def evaluate_settings(
                     continue
                 writer.writerow(row)
                 csv_file.flush()
+                os.fsync(csv_file.fileno())
                 print(f"[{completed}/{len(jobs)}] done: row={index + 2}")
 
 
