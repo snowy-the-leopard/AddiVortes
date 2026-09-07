@@ -194,6 +194,7 @@ def sequential_ee_screen(
     seed: int | np.random.Generator | None = None,
     factor_names: list | None = None,
     design_points: np.ndarray | None = None,
+    progress_callback: Callable[[IterationRecord], None] | None = None,
 ) -> ScreeningResult:
     """Run the sequential elementary effects screening algorithm.
 
@@ -218,6 +219,8 @@ def sequential_ee_screen(
     design_points : optional (m, k) array of pre-generated space-filling
         points in [0,1]^k, if you want to supply your own design instead
         of an internally generated maximin LHS.
+    progress_callback : optional callable receiving each completed iteration
+        record, useful for reporting progress during a long screening run.
     """
     rng = np.random.default_rng(seed)
 
@@ -263,6 +266,9 @@ def sequential_ee_screen(
             R=R, active_factors=list(C), mu=mu, mu_star=mu_star, sigma=sigma,
             sigma0=s0, eliminated_this_step=newly_eliminated,
         ))
+
+        if progress_callback is not None:
+            progress_callback(history[-1])
 
         for j in newly_eliminated:
             C.remove(j)
