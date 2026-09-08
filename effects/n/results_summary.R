@@ -25,7 +25,7 @@ r2 <- 1 - sum((results$median_out_sample_rmse - yhat)^2) /
 r2
 
 ggplot(results, aes(x=n, y=median_in_sample_rmse)) +
-  geom_line() +
+  geom_point() +
   geom_line(data = pred_grid, aes(y = iRMSE), color = "red", linewidth = 1) +
   labs(
     x = "Size of random subset (n)",
@@ -35,7 +35,7 @@ ggplot(results, aes(x=n, y=median_in_sample_rmse)) +
 ggsave("graphs/iRMSE.jpg")
 
 ggplot(results, aes(x=n, y=median_out_sample_rmse)) +
-  geom_line() +
+  geom_point() +
   geom_line(data = pred_grid, aes(y = oRMSE), color = "red", linewidth = 1) +
   labs(
     x = "Size of random subset (n)",
@@ -46,7 +46,7 @@ ggsave("graphs/oRMSE.jpg")
 
 
 ggplot(results, aes(x=n, y=median_fit_time_s)) +
-  geom_line() +
+  geom_point() +
   geom_line(data = pred_grid, aes(y=fit), color="red", linewidth=1) +
   labs(
     x = "Size of random subset (n)",
@@ -56,7 +56,7 @@ ggplot(results, aes(x=n, y=median_fit_time_s)) +
 ggsave("graphs/fit.jpg")
 
 ggplot(results, aes(x=n, y=median_predict_time_s)) +
-  geom_line() +
+  geom_point() +
   geom_line(data = pred_grid, aes(y=pred), color="red", linewidth=1) +
   labs(
     x = "Size of random subset (n)",
@@ -68,7 +68,7 @@ ggsave("graphs/pred.jpg")
 
 
 ggplot(results, aes(x=n, y=median_out_sample_rmse / median_fit_time_s)) +
-  geom_line()
+  geom_point()
 
 model1 <- lm(median_out_sample_rmse / median_fit_time_s ~ I(1/n**3) + I(1/n**2) + I(1/n), results)
 
