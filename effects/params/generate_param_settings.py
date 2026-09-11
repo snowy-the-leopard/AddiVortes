@@ -43,7 +43,7 @@ SEARCH_RANGES = {
     "q": (0.6, 0.999),
     "omega": (1, 7),
     "lambda": (1, 50),
-    "mcmcIter": (500, 100000),
+    "mcmcIter": (500, 10000),
     "mcmcBurnin": (0.01, 0.5),
 }
 

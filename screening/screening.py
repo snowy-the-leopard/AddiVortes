@@ -62,13 +62,13 @@ def screen_one_metric(args: tuple) -> dict:
     """Screen one metric in a worker process.
     
     Args:
-        args: (metric, X_train, y_train, X_test, y_test, parameter_names, 
+        args: (dataset_name, metric, X_train, y_train, X_test, y_test, parameter_names,
                bounds, baseline, p, gamma)
     
     Returns:
         Dictionary with metric, result object, and timing information.
     """
-    (metric, X_train, y_train, X_test, y_test, parameter_names, 
+    (dataset_name, metric, X_train, y_train, X_test, y_test, parameter_names,
      bounds, baseline, p, gamma) = args
     
     delta = p / (2 * (p - 1))
@@ -167,6 +167,7 @@ def screen_one_metric(args: tuple) -> dict:
     screen_time = time.time() - screen_start
     
     return {
+        "dataset_name": dataset_name,
         "metric": metric,
         "result": result,
         "screen_time": screen_time,
@@ -178,25 +179,25 @@ def _screen_one_metric_safe(args: tuple) -> tuple:
     
     Returns: (metric, result_dict_or_None, error_or_None)
     """
-    metric = args[0]
+    dataset_name, metric = args[:2]
     try:
-        return metric, screen_one_metric(args), None
+        return dataset_name, metric, screen_one_metric(args), None
     except Exception as exc:
-        return metric, None, repr(exc)
+        return dataset_name, metric, None, repr(exc)
 
 
 def generate_plots_for_metric(args: tuple) -> dict:
     """Generate and save plots for one metric in a worker process.
     
     Args:
-        args: (metric, result, root)
+        args: (dataset_name, metric, result, output_dir)
     
     Returns:
         Dictionary with metric and save paths.
     """
-    metric, result, root = args
+    dataset_name, metric, result, output_dir = args
     
-    out_dir = root / "outputs" / metric
+    out_dir = output_dir / metric
     out_dir.mkdir(parents=True, exist_ok=True)
     
     ax1 = plot_final_effects(result)
@@ -212,6 +213,7 @@ def generate_plots_for_metric(args: tuple) -> dict:
     plt.close("all")
     
     return {
+        "dataset_name": dataset_name,
         "metric": metric,
         "effects_path": str(effects_path),
         "grid_path": str(grid_path),
@@ -223,11 +225,11 @@ def _generate_plots_safe(args: tuple) -> tuple:
     
     Returns: (metric, plots_dict_or_None, error_or_None)
     """
-    metric = args[0]
+    dataset_name, metric = args[:2]
     try:
-        return metric, generate_plots_for_metric(args), None
+        return dataset_name, metric, generate_plots_for_metric(args), None
     except Exception as exc:
-        return metric, None, repr(exc)
+        return dataset_name, metric, None, repr(exc)
 
 
 def default_n_workers() -> int:
@@ -250,20 +252,62 @@ def default_n_workers() -> int:
         return os.cpu_count() or 1
 
 
-def main(n_workers: int | None = None) -> None:
-    """Screen AddiVortes hyperparameters across 4 metrics in parallel."""
+def load_dataset(data_dir: Path, subset: bool = False):
+    """Load either the benchmark split or one generated earthquake split."""
+    if subset:
+        train = pd.read_csv(data_dir / "train.csv")
+        test = pd.read_csv(data_dir / "test.csv")
+        target = "mag"
+        return (
+            train.drop(columns=[target]),
+            train[target].to_numpy(),
+            test.drop(columns=[target]),
+            test[target].to_numpy(),
+        )
+
+    return (
+        pd.read_csv(data_dir / "x_train.csv"),
+        pd.read_csv(data_dir / "y_train.csv").iloc[:, 0].to_numpy(),
+        pd.read_csv(data_dir / "x_test.csv"),
+        pd.read_csv(data_dir / "y_test.csv").iloc[:, 0].to_numpy(),
+    )
+
+
+def main(
+    n_workers: int | None = None,
+    excludeBoston: bool = False,
+) -> None:
+    """Screen AddiVortes datasets and metrics in parallel.
+
+    Args:
+        n_workers: Maximum number of worker processes to use.
+        excludeBoston: If true, omit the Boston dataset and screen only the
+            five earthquake subsets.
+    """
     
     if n_workers is None:
         n_workers = default_n_workers()
     
     root = Path(__file__).resolve().parent.parent
-    data_dir = root / "benchmarks" / "datasets" / "boston"
+    screening_dir = Path(__file__).resolve().parent
+    datasets = [("boston", root / "benchmarks" / "datasets" / "boston", False, screening_dir / "outputs")]
+
+    subset_root = root / "effects" / "n" / "subsets" / "100"
+    subset_dirs = sorted(
+        (path for path in subset_root.iterdir() if path.is_dir()),
+        key=lambda path: int(path.name),
+    )[:5]
+    if len(subset_dirs) < 5:
+        raise RuntimeError(f"Expected at least 5 earthquake subsets in {subset_root}")
+    datasets.extend(
+        (f"earthquake_{path.name}", path, True, screening_dir / f"outputs{i}")
+        for i, path in enumerate(subset_dirs, 1)
+    )
+
+    if excludeBoston:
+        datasets = datasets[1:]
 
     print("Loading data...")
-    X_train = pd.read_csv(data_dir / "x_train.csv")
-    y_train = pd.read_csv(data_dir / "y_train.csv").iloc[:, 0].to_numpy()
-    X_test = pd.read_csv(data_dir / "x_test.csv")
-    y_test = pd.read_csv(data_dir / "y_test.csv").iloc[:, 0].to_numpy()
 
     parameter_names = ["m", "nu", "q", "omega", "lambda_c", "iter", "burnin"]
     bounds = load_parameter_bounds_from_tex(root / "parameters.tex")
@@ -292,50 +336,69 @@ def main(n_workers: int | None = None) -> None:
     p = 10
     gamma = 0.01
     
-    screening_dir = Path(__file__).resolve().parent
-
-    # Prepare arguments for worker processes
-    # Each worker gets: (metric, X_train, y_train, X_test, y_test, 
-    #                    parameter_names, bounds, baseline, p, gamma)
-    worker_args = [
-        (metric, X_train, y_train, X_test, y_test, parameter_names, 
-         bounds, baseline, p, gamma)
-        for metric in metrics
-    ]
+    worker_args = []
+    for dataset_name, data_dir, is_subset, _ in datasets:
+        X_train, y_train, X_test, y_test = load_dataset(data_dir, is_subset)
+        print(f"  {dataset_name}: {len(X_train)} training rows, {len(X_test)} test rows")
+        worker_args.extend(
+            (dataset_name, metric, X_train, y_train, X_test, y_test,
+             parameter_names, bounds, baseline, p, gamma)
+            for metric in metrics
+        )
 
     # Screen all metrics in parallel
-    n_workers = min(n_workers, len(metrics)) or 1
-    print(f"\nScreening {len(metrics)} metrics across {n_workers} worker processes...")
+    n_workers = min(n_workers, len(worker_args)) or 1
+    print(f"\nScreening {len(datasets)} datasets across {n_workers} worker processes...")
     print(f"{'='*70}\n")
 
     metric_results = {}
     
-    with mp.Pool(processes=n_workers, initializer=_init_worker) as pool:
-        results_iter = pool.imap_unordered(
-            _screen_one_metric_safe,
-            worker_args,
-            chunksize=1,
-        )
-        
-        for i, (metric, result_dict, error) in enumerate(results_iter, 1):
-            if error is not None:
-                print(f"[FAILED] {metric} -> {error}\n")
-                continue
-            
-            metric_results[metric] = result_dict["result"]
-            screen_time = result_dict["screen_time"]
-            print(f"[{i}/{len(metrics)}] Screening {metric} completed in {screen_time:.1f}s")
-            print(result_dict["result"].summary())
-            print()
+    screening_deadline = time.monotonic() + 3600
+    pool = mp.Pool(processes=n_workers, initializer=_init_worker)
+    pending = [pool.apply_async(_screen_one_metric_safe, (args,)) for args in worker_args]
+    completed = 0
+    try:
+        while pending and time.monotonic() < screening_deadline:
+            still_pending = []
+            for async_result in pending:
+                if not async_result.ready():
+                    still_pending.append(async_result)
+                    continue
+
+                completed += 1
+                dataset_name, metric, result_dict, error = async_result.get()
+                if error is not None:
+                    print(f"[FAILED] {dataset_name}/{metric} -> {error}\n")
+                    continue
+
+                metric_results[(dataset_name, metric)] = result_dict["result"]
+                screen_time = result_dict["screen_time"]
+                print(f"[{completed}/{len(worker_args)}] Screening {dataset_name}/{metric} completed in {screen_time:.1f}s")
+                print(result_dict["result"].summary())
+                print()
+
+            pending = still_pending
+            if pending:
+                time.sleep(1)
+    finally:
+        if pending:
+            print(
+                f"\nScreening deadline reached; terminating {len(pending)} unfinished worker(s)."
+            )
+            pool.terminate()
+        else:
+            pool.close()
+        pool.join()
 
     # Generate plots in parallel
     print(f"\nGenerating plots for all metrics...")
     print(f"{'='*70}\n")
     
     plot_args = [
-        (metric, metric_results[metric], screening_dir)
+        (dataset_name, metric, metric_results[(dataset_name, metric)], output_dir)
+        for dataset_name, _, _, output_dir in datasets
         for metric in metrics
-        if metric in metric_results
+        if (dataset_name, metric) in metric_results
     ]
 
     plot_results = {}
@@ -347,13 +410,13 @@ def main(n_workers: int | None = None) -> None:
             chunksize=1,
         )
         
-        for i, (metric, plots_dict, error) in enumerate(plots_iter, 1):
+        for i, (dataset_name, metric, plots_dict, error) in enumerate(plots_iter, 1):
             if error is not None:
-                print(f"[FAILED] Plotting {metric} -> {error}\n")
+                print(f"[FAILED] Plotting {dataset_name}/{metric} -> {error}\n")
                 continue
             
-            plot_results[metric] = plots_dict
-            print(f"[{i}/{len(plot_args)}] Plots saved for {metric}:")
+            plot_results[(dataset_name, metric)] = plots_dict
+            print(f"[{i}/{len(plot_args)}] Plots saved for {dataset_name}/{metric}:")
             print(f"  - {plots_dict['effects_path']}")
             print(f"  - {plots_dict['grid_path']}\n")
 
@@ -362,20 +425,22 @@ def main(n_workers: int | None = None) -> None:
     print("SUMMARY: Parameter Importance Across Metrics")
     print(f"{'='*70}")
     
-    for metric in metrics:
-        if metric not in metric_results:
-            print(f"\n{metric}: [SKIPPED - screening failed]")
-            continue
-        
-        result = metric_results[metric]
-        nonlinear = [parameter_names[i] for i in result.nonlinear_factors]
-        linear = [parameter_names[i] for i in result.linear_factors]
-        negligible = [parameter_names[i] for i in result.negligible_factors]
-        
-        print(f"\n{metric}:")
-        print(f"  Nonlinear/important: {nonlinear}")
-        print(f"  Linear: {linear}")
-        print(f"  Negligible: {negligible}")
+    for dataset_name, _, _, _ in datasets:
+        print(f"\n{dataset_name}:")
+        for metric in metrics:
+            if (dataset_name, metric) not in metric_results:
+                print(f"  {metric}: [SKIPPED - screening failed]")
+                continue
+
+            result = metric_results[(dataset_name, metric)]
+            nonlinear = [parameter_names[i] for i in result.nonlinear_factors]
+            linear = [parameter_names[i] for i in result.linear_factors]
+            negligible = [parameter_names[i] for i in result.negligible_factors]
+
+            print(f"  {metric}:")
+            print(f"    Nonlinear/important: {nonlinear}")
+            print(f"    Linear: {linear}")
+            print(f"    Negligible: {negligible}")
     
     print(f"\n{'='*70}")
     print("All screening complete!")
