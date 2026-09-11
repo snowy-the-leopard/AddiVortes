@@ -10,7 +10,7 @@ def create_factorial_grid(m_options = 2,
     q_range = [0.6, 0.999]
     omega_range = [1, 7]
     lambda_c_range = [1,50]
-    iter_range = [500,100000]
+    iter_range = [500,10000]
     burnin_range = [0.01, 0.5]
 
     import csv
