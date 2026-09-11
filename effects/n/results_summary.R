@@ -14,14 +14,26 @@ pred_grid$oRMSE <- predict(model_oRMSE, pred_grid)
 pred_grid$fit <- predict(model_fit, pred_grid)
 pred_grid$pred <- predict(model_pred, pred_grid)
 
+adj_r_squared <- function(actual, predicted, p) {
+  n <- length(actual)
+  ss_res <- sum((actual - predicted)^2)
+  ss_tot <- sum((actual - mean(actual))^2)
+  r_squared <- 1 - (ss_res / ss_tot)
+  1 - ((1 - r_squared) * (n - 1) / (n - p - 1))
+}
+
 yhat <- predict(model_iRMSE, results[-(1:9),])
-r2 <- 1 - sum((results[-(1:9),]$median_in_sample_rmse - yhat)^2) /
-  sum((results[-(1:9),]$median_in_sample_rmse - mean(results[-(1:9),]$median_in_sample_rmse))^2)
+r2 <- adj_r_squared(results$median_in_sample_rmse[-(1:9)], yhat, 1)
 r2
 
 yhat <- predict(model_oRMSE)
-r2 <- 1 - sum((results$median_out_sample_rmse - yhat)^2) /
-  sum((results$median_out_sample_rmse - mean(results$median_out_sample_rmse))^2)
+r2 <- adj_r_squared(results$median_out_sample_rmse, yhat, 1)
+r2
+
+r2 <- summary(model_fit)$adj.r.squared
+r2
+
+r2 <- summary(model_pred)$adj.r.squared
 r2
 
 ggplot(results, aes(x=n, y=median_in_sample_rmse)) +
